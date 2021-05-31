@@ -26,3 +26,11 @@ jobs:
           script: |
             return context.payload
 
+  main:
+    name: Main job
+    needs: init
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report init outputs
+        run: |
+          printf '%s\n' '${{ needs.init.outputs.matrix }}'
