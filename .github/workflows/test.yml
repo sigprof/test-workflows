@@ -33,4 +33,4 @@ jobs:
     steps:
       - name: Report init outputs
         run: |
-          printf '%s\n' '${{ needs.init.outputs.matrix }}'
+          printf '%s\n' '${{ needs.init.outputs.matrix }}' | jq
