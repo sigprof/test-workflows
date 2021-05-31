@@ -22,8 +22,8 @@ jobs:
       - id: init
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
-        env:
-          DEFAULT_MATRIX:
+        with:
+          default_matrix:
             source:
               - { repo: "qmk/qmk_firmware", ref: "master" }
               - { repo: "qmk/qmk_firmware", ref: "develop" }
@@ -32,7 +32,6 @@ jobs:
             os:
               - ubuntu-latest
               - macos-latest
-        with:
           script: |
             var defaultMatrix = {
               "source": [
@@ -42,18 +41,37 @@ jobs:
               "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
               "os": [ "ubuntu-latest", "macos-latest" ]
             };
-            return JSON.parse(process.env.DEFAULT_MATRIX);
+            const inputPrefix = "INPUT_";
+            var obj = {};
 
-  main:
-    name: Main job
+            Object.keys(process.env).forEach(function(key) {
+              if(key.startsWith(inputPrefix) && key != "INPUT_FILE-NAME") {
+                obj[key.substring(inputPrefix.length)] = process.env[key];
+              }
+            });
+            return obj;
+
+  dump:
+    name: Dump
     needs: init
-    strategy:
-      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Report matrix values
+      - name: Report data
+        env:
+          DATA: ${{ needs.init.outputs.matrix }}
         run: |
-          echo "Repo: ${{ matrix.source.repo }}"
-          echo "Ref:  ${{ matrix.source.ref  }}"
-          echo "nixPath: ${{ matrix.nixPath }}"
+          printf '%s' "$DATA" | jq
+
+  #ain:
+  # name: Main job
+  # needs: init
+  # strategy:
+  #   matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+  # runs-on: ${{ matrix.os }}
+  # steps:
+  #   - name: Report matrix values
+  #     run: |
+  #       echo "Repo: ${{ matrix.source.repo }}"
+  #       echo "Ref:  ${{ matrix.source.ref  }}"
+  #       echo "nixPath: ${{ matrix.nixPath }}"
 
