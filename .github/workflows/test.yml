@@ -32,5 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Report init outputs
+        env:
+          WORKFLOW_INPUTS: ${{ needs.init.outputs.matrix }}
         run: |
-          printf '%s\n' '${{ needs.init.outputs.matrix }}' | jq
+          printf '%s\n' "$WORKFLOW_INPUTS" | jq
