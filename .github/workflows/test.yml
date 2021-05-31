@@ -22,16 +22,27 @@ jobs:
       - id: init
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
+        env:
+          DEFAULT_MATRIX:
+            source:
+              - { repo: "qmk/qmk_firmware", ref: "master" }
+              - { repo: "qmk/qmk_firmware", ref: "develop" }
+            nixPath:
+              - nixpkgs=channel:nixos-20.09
+            os:
+              - ubuntu-latest
+              - macos-latest
         with:
           script: |
-            return {
+            var defaultMatrix = {
               "source": [
                 { "repo": "qmk/qmk_firmware", "ref": "master" },
                 { "repo": "qmk/qmk_firmware", "ref": "develop" },
-                { "repo": "sigprof/qmk_firmware", "ref": "nix-shell-updates" },
               ],
-              "os": [ "ubuntu-latest" ]
+              "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
+              "os": [ "ubuntu-latest", "macos-latest" ]
             };
+            return JSON.parse(process.env.DEFAULT_MATRIX);
 
   main:
     name: Main job
@@ -44,4 +55,5 @@ jobs:
         run: |
           echo "Repo: ${{ matrix.source.repo }}"
           echo "Ref:  ${{ matrix.source.ref  }}"
+          echo "nixPath: ${{ matrix.nixPath }}"
 
