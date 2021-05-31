@@ -1,0 +1,28 @@
+name: Test
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: Repository to test
+        required: false
+      ref:
+        description: Branch or tag to test
+        required: false
+      os:
+        description: OS to test
+        required: false
+
+jobs:
+  init:
+    name: Initialize the workflow
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.init.outputs.result }}
+    steps:
+      - id: init
+        name: Prepare the matrix
+        uses: actions/github-script@v4.0.2
+        with:
+          script: |
+            return context.payload
+
