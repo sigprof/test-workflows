@@ -24,15 +24,24 @@ jobs:
         uses: actions/github-script@v4.0.2
         with:
           script: |
-            return context.payload.inputs
+            return {
+              "source": [
+                { "repo": "qmk/qmk_firmware", "ref": "master" },
+                { "repo": "qmk/qmk_firmware", "ref": "develop" },
+                { "repo": "sigprof/qmk_firmware", "ref": "nix-shell-updates" },
+              ],
+              "os": [ "ubuntu-latest" ]
+            };
 
   main:
     name: Main job
     needs: init
-    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ needs.init.outputs.matrix }}
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Report init outputs
-        env:
-          WORKFLOW_INPUTS: ${{ needs.init.outputs.matrix }}
+      - name: Report matrix values
         run: |
-          printf '%s\n' "$WORKFLOW_INPUTS" | jq
+          echo "Repo: ${{ matrix.source.repo }}"
+          echo "Ref:  ${{ matrix.source.ref  }}"
+
