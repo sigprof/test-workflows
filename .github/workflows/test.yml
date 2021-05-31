@@ -37,7 +37,7 @@ jobs:
     name: Main job
     needs: init
     strategy:
-      matrix: ${{ needs.init.outputs.matrix }}
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Report matrix values
