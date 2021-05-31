@@ -24,7 +24,7 @@ jobs:
         uses: actions/github-script@v4.0.2
         with:
           script: |
-            return context.payload
+            return context.payload.inputs
 
   main:
     name: Main job
