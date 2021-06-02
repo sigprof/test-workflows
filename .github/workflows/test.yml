@@ -57,11 +57,11 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix }}
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     steps:
-      - name: Report data
+      - name: Report matrix value
         env:
-          DATA: ${{ matrix }}
+          DATA: ${{ toJSON(matrix) }}
         run: |
           printf '%s' "$DATA" | jq
 
