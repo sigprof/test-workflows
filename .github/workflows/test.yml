@@ -39,7 +39,7 @@ jobs:
               for (key in entry) {
                 var value = entry[key];
                 if (Array.isArray(value)) {
-                  return value.map(x => expandEntry({ ...entry, [key]: x }));
+                  return value.flatMap(x => expandEntry({ ...entry, [key]: x }));
                 }
               }
               return [entry];
