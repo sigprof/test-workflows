@@ -123,7 +123,7 @@ jobs:
               pulls = await github.pulls.list({
                 ...upstreamRepoName,
                 state: 'open',
-                head: `${myBranchName.owner}:feature/osl-clearing-configuration`, //${myBranchName.branch}`,
+                head: `${myBranchName.owner}:${myBranchName.branch}`,
                 sort: 'created'
               });
               dumpObject('pulls', pulls);
