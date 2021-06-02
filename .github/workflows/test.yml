@@ -13,13 +13,13 @@ on:
         required: false
 
 jobs:
-  init:
-    name: Initialize the workflow
+  setup:
+    name: Setup
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.init.outputs.result }}
+      matrix: ${{ steps.setup.outputs.result }}
     steps:
-      - id: init
+      - id: setup
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
         with:
@@ -30,7 +30,7 @@ jobs:
                 { "repo": "qmk/qmk_firmware", "ref": "develop" },
               ],
               "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
-              "os": [ "ubuntu-latest", "macos-latest" ]
+              "osPlaceholder": [ "ubuntu-latest", "macos-latest" ]
             };
             var matrix = { ...defaultMatrix };
             if (!matrix.include) {
@@ -43,12 +43,25 @@ jobs:
 
   dump:
     name: Dump
-    needs: init
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Report data
         env:
-          DATA: ${{ needs.init.outputs.matrix }}
+          DATA: ${{ needs.setup.outputs.matrix }}
+        run: |
+          printf '%s' "$DATA" | jq
+
+  Run:
+    name: Run
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix }}
+    steps:
+      - name: Report data
+        env:
+          DATA: ${{ matrix }}
         run: |
           printf '%s' "$DATA" | jq
 
