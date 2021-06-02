@@ -19,7 +19,7 @@ jobs:
     steps:
       - id: parse
         name: Parse workflow inputs
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch_disabled' }}
         uses: actions/github-script@v4.0.2
         with:
           script: |
@@ -66,7 +66,8 @@ jobs:
               osPlaceholder: [ "ubuntu-latest", "macos-latest" ]
             };
 
-            var matrixOverride = JSON.parse(process.env.MATRIX_OVERRIDE);
+            const matrixOverrideStr = process.env.MATRIX_OVERRIDE;
+            const matrixOverride = matrixOverrideStr && JSON.parse(matrixOverrideStr);
             console.log("matrixOverride:", matrixOverride);
 
             var matrix = { ...defaultMatrix };
