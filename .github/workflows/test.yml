@@ -92,11 +92,8 @@ jobs:
         if: ${{ !steps.parse.outputs.result }}
         with:
           script: |
-            const upstreamOwner = 'qmk';
-            const upstreamRepo = 'qmk_firmware';
-            const myOwner = 'sigprof';
-            const myRepo = 'qmk_firmware';
-            const myBranch = 'nix-shell-updates';
+            const upstreamNames = { owner: 'qmk', repo: 'qmk_firmware' };
+            const myNames = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
 
             let extraSource = [];
 
@@ -106,7 +103,7 @@ jobs:
               core.endGroup();
             }
 
-            let myBranch = github.rest.repos.getBranch(myOwner, myRepo, myBranch);
+            let myBranch = github.rest.repos.getBranch(myNames.owner, myNames.repo, myNames.branch);
             dumpJSON(myBranch);
 
             return null;
