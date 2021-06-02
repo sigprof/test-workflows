@@ -48,7 +48,7 @@ jobs:
               console.log("No matrix override specified.");
               matrixOverride = null;
             }
-            return matrix;
+            return matrixOverride;
 
       - id: matrix
         name: Prepare the matrix
