@@ -91,6 +91,7 @@ jobs:
         uses: actions/github-script@v4.0.2
         if: ${{ !steps.parse.outputs.result }}
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const upstreamNames = { owner: 'qmk', repo: 'qmk_firmware' };
             const myNames = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
@@ -103,7 +104,7 @@ jobs:
               core.endGroup();
             }
 
-            let myBranch = await github.rest.repos.getBranch(myNames.owner, myNames.repo, myNames.branch);
+            let myBranch = await github.repos.getBranch(myNames.owner, myNames.repo, myNames.branch);
             dumpJSON(myBranch);
 
             return null;
