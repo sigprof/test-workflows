@@ -139,10 +139,10 @@ jobs:
               core.warning(`There is more than one pull request for the '${myBranchName.branch}' branch.`);
             }
 
-            let sources = pulls.data.map(pull => {
-              ...upstreamRepoName,
-              ref: `refs/pull/${number}/merge`
-            });
+            //let sources = pulls.data.map(pull => {
+            //  ...upstreamRepoName,
+            //  ref: `refs/pull/${number}/merge`
+            //});
 
             return null;
 
