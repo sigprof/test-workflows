@@ -57,7 +57,7 @@ jobs:
             }
 
             function expandEntry(entry) {
-              return expandEntryKeys(entry, entry.keys(), 0);
+              return expandEntryKeys(entry, Object.keys(entry), 0);
             }
 
             function addToMatrix(extraEntry) {
