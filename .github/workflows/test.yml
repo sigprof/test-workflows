@@ -123,7 +123,7 @@ jobs:
               pulls = await github.pulls.list({
                 ...upstreamRepoName,
                 state: 'open',
-                head: `${myBranchName.owner}:nonexistent-branch`, //${myBranchName.branch}`,
+                head: `${myBranchName.owner}:onekey-oled`, //${myBranchName.branch}`,
                 sort: 'created'
               });
               dumpObject('pulls', pulls);
