@@ -94,7 +94,7 @@ jobs:
           github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           script: |
             const upstreamNames = { owner: 'qmk', repo: 'qmk_firmware' };
-            const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
+            const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updatess' };
 
             let extraSource = [];
 
@@ -104,14 +104,18 @@ jobs:
               core.endGroup();
             }
 
-            let myBranch = await github.repos.getBranch(myBranchName);
-            dumpObject('myBranch', myBranch);
-
+            let personalBranch
             try {
-              let myNonexistentBranch = await github.repos.getBranch({ ...myBranchName, branch: 'not-found' });
-              dumpObject('myNonexistentBranch', myNonexistentBranch);
+              personalBranch = await github.repos.getBranch(myBranchName);
+              dumpObject('personalBranch', personalBranch);
             } catch (e) {
-              dumpObject('myNonexistentBranch: error', e);
+              dumpObject('Error getting personalBranch', e);
+              if (e.name === 'HttpError' && e.status === 404) {
+                core.info('The PR source branch does not exist in the personal repository.');
+                return null;
+              } else {
+                throw e;
+              }
             }
 
             return null;
