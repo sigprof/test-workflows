@@ -129,6 +129,7 @@ jobs:
               dumpObject('pulls', pulls);
             } catch (e) {
               dumpObject('Error getting pulls', e);
+              throw e;
             }
 
             if (!pulls.data.length) {
@@ -139,12 +140,47 @@ jobs:
               core.warning(`There is more than one pull request for the '${myBranchName.branch}' branch.`);
             }
 
-            //let sources = pulls.data.map(pull => {
-            //  ...upstreamRepoName,
-            //  ref: `refs/pull/${number}/merge`
-            //});
+            let pullNumbers = []
+            for (pull of pulls.data) {
+              let updatedPull
+              for (let i = 1; i <= 10; ++i) {
+                try {
+                  updatedPull = await github.pulls.get({ ...upstreamRepoName, pull_number: pull.number });
+                  dumpObject('updatedPull', updatedPull);
+                } catch (e) {
+                  dumpObject('Error getting updated pull request data', e);
+                  updatedPull = null
+                }
+                if (updatedPull && (updatedPull.data.mergeable !== null)) {
+                  break;
+                }
+                await sleep(i * 1000);
+              }
+              if (updatedPull) {
+                if (updatedPull.data.mergeable === null) {
+                  core.warning(`Could not get mergeable status for ${pull.html_url}`);
+                } else if (updatedPull.data.mergeable === false) {
+                  core.error(`Pull request ${pull.html_url} is not mergeable`);
+                  // TODO: raise failure somehow while still processing the rest of workflow
+                } else if (updatedPull.data.mergeable === true) {
+                  core.info(`Pull request ${pull.html_url} is mergeable, will test it`);
+                  pullNumbers.push(pull.number);
+                } else {
+                  core.error(`Unexpected value for "mergeable" (see the last updatedPull)`);
+                  // TODO: fail
+                }
+              } else {
+                core.warning(`Could not update status for ${pull.html_url}`);
+              }
+            }
 
-            return null;
+            let sources = pulls.data.map(pull => return {
+              ...upstreamRepoName,
+              ref: `refs/pull/${number}/merge`
+            });
+            dumpObject('sources', sources);
+
+            return sources;
 
       - id: matrix
         name: Prepare the matrix
