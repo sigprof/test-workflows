@@ -226,16 +226,16 @@ jobs:
 
             return matrix;
 
-  dump:
-    name: Dump
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Report data
-        env:
-          DATA: ${{ needs.setup.outputs.matrix }}
-        run: |
-          printf '%s' "$DATA" | jq
+  #ump:
+  # name: Dump
+  # needs: setup
+  # runs-on: ubuntu-latest
+  # steps:
+  #   - name: Report data
+  #     env:
+  #       DATA: ${{ needs.setup.outputs.matrix }}
+  #     run: |
+  #       printf '%s' "$DATA" | jq
 
   #un:
   # name: Run
