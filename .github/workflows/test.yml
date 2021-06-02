@@ -107,8 +107,12 @@ jobs:
             let myBranch = await github.repos.getBranch(myBranchName);
             dumpObject('myBranch', myBranch);
 
-            let myNonexistentBranch = await github.repos.getBranch({ ...myBranchName, branch: 'not-found' });
-            dumpObject('myNonexistentBranch', myNonexistentBranch);
+            try {
+              let myNonexistentBranch = await github.repos.getBranch({ ...myBranchName, branch: 'not-found' });
+              dumpObject('myNonexistentBranch', myNonexistentBranch);
+            } catch (e) {
+              dumpObject('myNonexistentBranch: error', e);
+            }
 
             return null;
 
