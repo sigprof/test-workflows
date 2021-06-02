@@ -28,6 +28,9 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/github-script@v4.0.2
         with:
+          # This script needs to be able to return an empty string in some
+          # cases, which is not possible if the JSON encoding is used.
+          result-encoding: string
           script: |
             // The `?.` operator does not work
             const payload = context.payload;
@@ -36,7 +39,7 @@ jobs:
 
             if (!matrixOverrideStr) {
               core.info("No matrix override specified.");
-              return null;
+              return "";
             };
 
             let matrixOverride = {};
@@ -50,7 +53,7 @@ jobs:
                   `Invalid workflow input 'matrixOverride': "${matrixOverrideStr}".\n`+
                   `JSON parse failed: ${error.toString()}`
                 );
-                return null;
+                return "";
               }
             } else {
               // Parse the simplified syntax.
@@ -62,7 +65,7 @@ jobs:
                     `Invalid workflow input 'matrixOverride': "${matrixOverrideStr}".\n`+
                     `Invalid parameter specification "${param}".`
                   );
-                  return null;
+                  return "";
                 }
                 const name = nameAndValues[1];
                 if (matrixOverride[name]) {
@@ -70,7 +73,7 @@ jobs:
                     `Invalid workflow input 'matrixOverride': "${matrixOverrideStr}".\n`+
                     `Duplicate key "${name}".`
                   );
-                  return null;
+                  return "";
                 }
                 const values = nameAndValues[2].split(/\s*,\s*/);
                 matrixOverride[name] = values;
@@ -81,7 +84,32 @@ jobs:
             core.info(JSON.stringify(matrixOverride, null, 2));
             core.endGroup();
 
-            return matrixOverride;
+            return JSON.stringify(matrixOverride);
+
+      - id: pendingPR
+        name: Discover pending PR refs
+        uses: actions/github-script@v4.0.2
+        if: ${{ !steps.parse.outputs.result }}
+        with:
+          script: |
+            const upstreamOwner = 'qmk';
+            const upstreamRepo = 'qmk_firmware';
+            const myOwner = 'sigprof';
+            const myRepo = 'qmk_firmware';
+            const myBranch = 'nix-shell-updates';
+
+            let extraSource = [];
+
+            function dumpJSON(header, data) {
+              core.startGroup(`${header}:`);
+              core.info(JSON.stringify(data, null, 2));
+              core.endGroup();
+            }
+
+            let myBranch = github.rest.repos.getBranch(myOwner, myRepo, myBranch);
+            dumpJSON(myBranch);
+
+            return null;
 
       - id: matrix
         name: Prepare the matrix
@@ -172,7 +200,7 @@ jobs:
             }
 
             core.startGroup("Job matrix:");
-            core.info(JSON.stringify(matrixOverride, null, 2));
+            core.info(JSON.stringify(matrix, null, 2));
             core.endGroup();
 
             return matrix;
