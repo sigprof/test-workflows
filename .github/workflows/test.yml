@@ -174,7 +174,7 @@ jobs:
               }
             }
 
-            let sources = pulls.data.map(pull => return {
+            let sources = pullNumbers.map(number => {
               ...upstreamRepoName,
               ref: `refs/pull/${number}/merge`
             });
