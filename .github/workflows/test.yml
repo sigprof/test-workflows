@@ -23,17 +23,8 @@ jobs:
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
         with:
-          default_matrix:
-            source:
-              - { repo: "qmk/qmk_firmware", ref: "master" }
-              - { repo: "qmk/qmk_firmware", ref: "develop" }
-            nixPath:
-              - nixpkgs=channel:nixos-20.09
-            os:
-              - ubuntu-latest
-              - macos-latest
           script: |
-            var defaultMatrix = {
+            const defaultMatrix = {
               "source": [
                 { "repo": "qmk/qmk_firmware", "ref": "master" },
                 { "repo": "qmk/qmk_firmware", "ref": "develop" },
@@ -41,15 +32,11 @@ jobs:
               "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
               "os": [ "ubuntu-latest", "macos-latest" ]
             };
-            const inputPrefix = "INPUT_";
-            var obj = {};
-
-            Object.keys(process.env).forEach(function(key) {
-              if(key.startsWith(inputPrefix) && key != "INPUT_FILE-NAME") {
-                obj[key.substring(inputPrefix.length)] = process.env[key];
-              }
+            var matrix = { ...defaultMatrix };
+            (matrix.include ??= []).push({
+              source: { repo: "sigprof/qmk_firmware", ref: "nix-shell-updates" }
             });
-            return obj;
+            return matrix;
 
   dump:
     name: Dump
