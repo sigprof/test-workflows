@@ -2,14 +2,12 @@ name: Test
 on:
   workflow_dispatch:
     inputs:
-      repository:
-        description: Repository to test
-        required: false
-      ref:
-        description: Branch or tag to test
-        required: false
-      os:
-        description: OS to test
+      matrix:
+        description: >
+          Matrix override for the manual workflow run.  Specify a JSON value
+          which overrides the `source`, `nixPath` and `os` keys as desired.
+          Unspecified keys will inherit the sets of values from the default
+          matrix.
         required: false
 
 jobs:
@@ -17,33 +15,42 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.setup.outputs.result }}
+      matrix: ${{ steps.matrix.outputs.result }}
     steps:
-      - id: setup
+      - id: parse
+        name: Parse workflow inputs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/github-script@v4.0.2
+        with:
+          script: |
+            const matrixInput = context?.payload?.inputs?.matrix;
+            if (matrixInput) {
+              try {
+                const matrix = JSON.parse(matrixInput);
+                console.log("Custom matrix:", matrix);
+              } catch (error) {
+                console.error("JSON parse error for the `matrix` input:", error);
+                throw error;
+              }
+            } else {
+              console.log("No `matrix` input specified.");
+            }
+
+      - id: matrix
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
         with:
           script: |
             const defaultMatrix = {
-              "source": [
-                { "repo": "qmk/qmk_firmware", "ref": "master" },
-                [{ "repo": "qmk/qmk_firmware", "ref": "develop" }],
+              source: [
+                { repo: "qmk/qmk_firmware", ref: "master"  },
+                { repo: "qmk/qmk_firmware", ref: "develop" },
               ],
-              "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
-              "osPlaceholder": [ "ubuntu-latest", ["macos-latest"] ]
+              nixPath: [ "nixpkgs=channel:nixos-20.09" ],
+              osPlaceholder: [ "ubuntu-latest", "macos-latest" ]
             };
 
             var matrix = { ...defaultMatrix };
-
-            function expandEntry1(entry) {
-              for (key in entry) {
-                var value = entry[key];
-                if (Array.isArray(value)) {
-                  return value.flatMap(x => expandEntry1({ ...entry, [key]: x }));
-                }
-              }
-              return [entry];
-            }
 
             function expandEntryKeys(entry, keys, startPos) {
               for (let i = startPos; i < keys.length; ++i) {
@@ -60,9 +67,9 @@ jobs:
               return expandEntryKeys(entry, Object.keys(entry), 0);
             }
 
-            function addToMatrix(extraEntry) {
-              var entry = { ...defaultMatrix, ...extraEntry };
-              matrix.include = (matrix.include || []).concat(expandEntry(entry));
+            function addToMatrix(entry) {
+              const fullEntry = { ...defaultMatrix, ...entry };
+              matrix.include = (matrix.include || []).concat(expandEntry(fullEntry));
             }
 
             addToMatrix({
@@ -83,18 +90,18 @@ jobs:
         run: |
           printf '%s' "$DATA" | jq
 
-  Run:
-    name: Run
-    needs: setup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    steps:
-      - name: Report matrix value
-        env:
-          DATA: ${{ toJSON(matrix) }}
-        run: |
-          printf '%s' "$DATA" | jq
+  #un:
+  # name: Run
+  # needs: setup
+  # runs-on: ubuntu-latest
+  # strategy:
+  #   matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+  # steps:
+  #   - name: Report matrix value
+  #     env:
+  #       DATA: ${{ toJSON(matrix) }}
+  #     run: |
+  #       printf '%s' "$DATA" | jq
 
   #ain:
   # name: Main job
