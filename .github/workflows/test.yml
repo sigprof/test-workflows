@@ -33,7 +33,10 @@ jobs:
               "os": [ "ubuntu-latest", "macos-latest" ]
             };
             var matrix = { ...defaultMatrix };
-            (matrix.include ??= []).push({
+            if (!matrix.include) {
+              matrix.include = [];
+            }
+            matrix.include.push({
               source: { repo: "sigprof/qmk_firmware", ref: "nix-shell-updates" }
             });
             return matrix;
