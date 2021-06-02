@@ -18,14 +18,16 @@ jobs:
       matrix: ${{ steps.matrix.outputs.result }}
     steps:
       - id: parse
-        name: Parse workflow inputs
-        if: ${{ github.event_name == 'workflow_dispatch_disabled' }}
+        name: Parse inputs for manually triggered workflow
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/github-script@v4.0.2
         with:
           script: |
+            // The `?.` operator does not work
             const payload = context.payload;
             const inputs = payload && payload.inputs;
             const matrixOverrideStr = inputs && inputs.matrixOverride && inputs.matrixOverride.trim();
+
             let matrixOverride = {};
             if (matrixOverrideStr) {
               const params = matrixOverrideStr.split(/\s*;\s*/);
