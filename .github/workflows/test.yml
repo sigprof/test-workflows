@@ -174,10 +174,13 @@ jobs:
               }
             }
 
-            let sources = pullNumbers.map(number => {
-              ...upstreamRepoName,
-              ref: `refs/pull/${number}/merge`
-            });
+            let sources = []
+            for (number of pullNumbers) {
+              sources.push({
+                ...upstreamRepoName,
+                ref: `refs/pull/${number}/merge`
+              });
+            }
             dumpObject('sources', sources);
 
             return sources;
