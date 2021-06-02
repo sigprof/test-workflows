@@ -93,8 +93,8 @@ jobs:
         with:
           github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           script: |
-            const upstreamNames = { owner: 'qmk', repo: 'qmk_firmware' };
-            const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updatess' };
+            const upstreamRepoName = { owner: 'qmk', repo: 'qmk_firmware' };
+            const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
 
             let extraSource = [];
 
@@ -116,6 +116,18 @@ jobs:
               } else {
                 throw e;
               }
+            }
+
+            let pulls
+            try {
+              pulls = await github.pulls.list({
+                ...upstreamRepoName,
+                head: `${myBranchName.owner}:${myBranchName.branch}`,
+                sort: 'created'
+              });
+              dumpObject('pulls', pulls);
+            } catch (e) {
+              dumpObject('Error getting pulls', e);
             }
 
             return null;
