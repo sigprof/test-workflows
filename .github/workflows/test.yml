@@ -98,14 +98,17 @@ jobs:
 
             let extraSource = [];
 
-            function dumpJSON(header, data) {
+            function dumpObject(header, data) {
               core.startGroup(`${header}:`);
-              core.info(JSON.stringify(data, null, 2));
+              console.log(data);
               core.endGroup();
             }
 
             let myBranch = await github.repos.getBranch(myBranchName);
-            console.log(myBranch);
+            dumpObject('myBranch', myBranch);
+
+            let myNonexistentBranch = await github.repos.getBranch({ ...myBranchName, branch: 'not-found' });
+            dumpObject('myNonexistentBranch', myNonexistentBranch);
 
             return null;
 
