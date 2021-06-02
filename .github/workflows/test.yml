@@ -23,7 +23,9 @@ jobs:
         uses: actions/github-script@v4.0.2
         with:
           script: |
-            const matrixInput = context?.payload?.inputs?.matrix;
+            const payload = context.payload;
+            const inputs = payload && payload.inputs;
+            const matrixInput = inputs && inputs.matrix;
             if (matrixInput) {
               try {
                 const matrix = JSON.parse(matrixInput);
