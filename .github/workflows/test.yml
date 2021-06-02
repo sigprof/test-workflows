@@ -25,23 +25,36 @@ jobs:
           script: |
             const payload = context.payload;
             const inputs = payload && payload.inputs;
-            const matrixInput = inputs && inputs.matrix;
+            const matrixInput = inputs && inputs.matrix && inputs.matrix.trim();
+            let matrix = {};
             if (matrixInput) {
-              try {
-                const matrix = JSON.parse(matrixInput);
-                console.log("Custom matrix:", matrix);
-              } catch (error) {
-                console.error("JSON parse error for the `matrix` input:", error);
-                throw error;
+              const params = matrixInput.split(/\s*;\s*/);
+              for (param of params) {
+                const nameAndValue = param.match(/^([^=\s]+)\s*=\s*(.*)$/);
+                if (!nameAndValue[0] || !nameAndValue[1]) {
+                  console.error(`Invalid matrix value "${param}"`);
+                  throw "Invalid workflow parameter";
+                }
+                const name = nameAndValue[0];
+                if (matrix[name]) {
+                  console.error(`Duplicate matrix key "${name}"`);
+                  throw "Invalid workflow parameter";
+                }
+                const values = nameAndValue[1].split(/\s*,\s*/);
+                matrix[name] = values;
               }
+              console.log("Custom matrix:", matrix);
             } else {
               console.log("No `matrix` input specified.");
+              matrix = null;
             }
+            return matrix;
 
       - id: matrix
         name: Prepare the matrix
         uses: actions/github-script@v4.0.2
         with:
+          matrix: ${{ steps.parse.outputs.result }}
           script: |
             const defaultMatrix = {
               source: [
@@ -51,6 +64,9 @@ jobs:
               nixPath: [ "nixpkgs=channel:nixos-20.09" ],
               osPlaceholder: [ "ubuntu-latest", "macos-latest" ]
             };
+
+            var matrixInput = core.getInput('matrix', { required: true });
+            console.log("matrixInput:", matrixInput);
 
             var matrix = { ...defaultMatrix };
 
