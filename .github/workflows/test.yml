@@ -91,7 +91,7 @@ jobs:
         uses: actions/github-script@v4.0.2
         if: ${{ !steps.parse.outputs.result }}
         with:
-          #github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           script: |
             const upstreamNames = { owner: 'qmk', repo: 'qmk_firmware' };
             const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
