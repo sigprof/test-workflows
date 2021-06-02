@@ -120,8 +120,9 @@ jobs:
 
             let pulls
             try {
-              pulls = await github.pulls.list({
+              { data: pulls } = await github.pulls.list({
                 ...upstreamRepoName,
+                state: 'open',
                 head: `${myBranchName.owner}:${myBranchName.branch}`,
                 sort: 'created'
               });
