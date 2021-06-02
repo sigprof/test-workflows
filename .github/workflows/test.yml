@@ -32,17 +32,28 @@ jobs:
               "nixPath": [ "nixpkgs=channel:nixos-20.09" ],
               "osPlaceholder": [ "ubuntu-latest", "macos-latest" ]
             };
+
             var matrix = { ...defaultMatrix };
+
+            function expandEntry(entry) {
+              for (key in entry) {
+                var value = entry[key];
+                if (Array.isArray(value)) {
+                  return value.map(x => expandEntry({ ...entry, [key]: x }));
+                }
+              }
+              return [entry];
+            }
+
             function addToMatrix(extraEntry) {
               var entry = { ...defaultMatrix, ...extraEntry };
-              if (!matrix.include) {
-                matrix.include = [];
-              }
-              matrix.include.push(entry);
+              matrix.include = (matrix.include || []).concat(expandEntry(entry));
             }
+
             addToMatrix({
               source: { repo: "sigprof/qmk_firmware", ref: "nix-shell-updates" }
             });
+
             return matrix;
 
   dump:
