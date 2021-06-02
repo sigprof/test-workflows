@@ -41,7 +41,7 @@ jobs:
 
             let matrixOverride = {};
 
-            // if (matrixOverrideStr.startsWith("{") {
+            if (matrixOverrideStr.startsWith("{") {
             //   // Parse the parameter as raw JSON.
             //   try {
             //     matrixOverride = JSON.parse(matrixOverrideStr);
@@ -75,7 +75,7 @@ jobs:
             //     const values = nameAndValues[2].split(/\s*,\s*/);
             //     matrixOverride[name] = values;
             //   }
-            // }
+            }
 
             core.startGroup("Matrix override:");
             core.info(JSON.stringify(matrixOverride, null, 2));
