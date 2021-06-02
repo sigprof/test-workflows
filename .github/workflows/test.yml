@@ -31,16 +31,16 @@ jobs:
               const params = matrixOverrideStr.split(/\s*;\s*/);
               for (param of params) {
                 const nameAndValue = param.match(/^([^=\s]+)\s*=\s*(.*)$/);
-                if (!nameAndValue[0] || !nameAndValue[1]) {
+                if (!nameAndValue[1] || !nameAndValue[2]) {
                   console.error(`Invalid matrix value "${param}"`);
                   throw "Invalid workflow parameter";
                 }
-                const name = nameAndValue[0];
+                const name = nameAndValue[1];
                 if (matrixOverride[name]) {
                   console.error(`Duplicate matrix key "${name}"`);
                   throw "Invalid workflow parameter";
                 }
-                const values = nameAndValue[1].split(/\s*,\s*/);
+                const values = nameAndValue[2].split(/\s*,\s*/);
                 matrixOverride[name] = values;
               }
               console.log("Matrix override:", matrixOverride);
