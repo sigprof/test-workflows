@@ -123,13 +123,26 @@ jobs:
               pulls = await github.pulls.list({
                 ...upstreamRepoName,
                 state: 'open',
-                head: `${myBranchName.owner}:onekey-oled`, //${myBranchName.branch}`,
+                head: `${myBranchName.owner}:feature/osl-clearing-configuration`, //${myBranchName.branch}`,
                 sort: 'created'
               });
               dumpObject('pulls', pulls);
             } catch (e) {
               dumpObject('Error getting pulls', e);
             }
+
+            if (!pulls.data.length) {
+              core.info(`There is no open pull request for the '${myBranchName.branch}' branch.`);
+              return null;
+            }
+            if (pulls.data.length > 1) {
+              core.warning(`There is more than one pull request for the '${myBranchName.branch}' branch.`);
+            }
+
+            let sources = pulls.data.map(pull => {
+              ...upstreamRepoName,
+              ref: `refs/pull/${number}/merge`
+            });
 
             return null;
 
