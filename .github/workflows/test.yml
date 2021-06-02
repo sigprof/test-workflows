@@ -34,7 +34,7 @@ jobs:
             };
             var matrix = { ...defaultMatrix };
             function addToMatrix(extraEntry) {
-              var entry = { ..defaultMatrix, ..extraEntry };
+              var entry = { ...defaultMatrix, ...extraEntry };
               if (!matrix.include) {
                 matrix.include = [];
               }
