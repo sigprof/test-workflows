@@ -325,7 +325,7 @@ jobs:
     needs:
       - setup
       - dump
-    on: >-
+    if: >-
       ${{ always() && (needs.setup.result == 'success') && (needs.setup.outputs.error) }}
     runs-on: ubuntu-latest
     steps:
