@@ -82,7 +82,7 @@ jobs:
             }
 
             core.startGroup("Matrix override:");
-            core.info(JSON.stringify(matrixOverride, null, 2));
+            console.log(matrixOverride);
             core.endGroup();
 
             return JSON.stringify(matrixOverride);
@@ -92,18 +92,19 @@ jobs:
         uses: actions/github-script@v4.0.2
         if: ${{ !steps.parse.outputs.result }}
         with:
-          #github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           script: |
             const upstreamRepoName = { owner: 'qmk', repo: 'qmk_firmware' };
             const myBranchName = { owner: 'sigprof', repo: 'qmk_firmware', branch: 'nix-shell-updates' };
-
-            let extraSource = [];
 
             function dumpObject(header, data) {
               core.startGroup(`${header}:`);
               console.log(data);
               core.endGroup();
             }
+
+            let result = {
+              source: []
+            };
 
             let personalBranch
             try {
@@ -113,11 +114,16 @@ jobs:
               dumpObject('Error getting personalBranch', e);
               if (e.name === 'HttpError' && e.status === 404) {
                 core.info('The PR source branch does not exist in the personal repository.');
+                // A pending PR cannot exist without the source branch.
                 return null;
               } else {
                 throw e;
               }
             }
+            result.source.push({
+              repo: `${myBranchName.owner}/${myBranchName.repo}`,
+              ref: myBranchName.branch
+            });
 
             let pulls
             try {
@@ -175,9 +181,6 @@ jobs:
               }
             }
 
-            let result = {
-              source: []
-            };
             for (number of pullNumbers) {
               result.source.push({
                 repo: `${upstreamRepoName.owner}/${upstreamRepoName.repo}`,
@@ -185,7 +188,6 @@ jobs:
               });
             }
             dumpObject('result', result);
-            core.setOutput('error', "Test error");
 
             return result;
 
