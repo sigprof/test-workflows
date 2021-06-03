@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.result }}
+      error: ${{ steps.pendingPR.outputs.error }}
     steps:
       - id: parse
         name: Parse inputs for manually triggered workflow
@@ -144,7 +145,6 @@ jobs:
             for (pull of pulls.data) {
               let updatedPull
               for (let i = 1; i <= 10; ++i) {
-                await new Promise(r => setTimeout(r, i * 1000));
                 try {
                   updatedPull = await github.pulls.get({ ...upstreamRepoName, pull_number: pull.number });
                   dumpObject('updatedPull', updatedPull);
@@ -155,6 +155,7 @@ jobs:
                 if (updatedPull && (updatedPull.data.mergeable !== null)) {
                   break;
                 }
+                await new Promise(r => setTimeout(r, i * 1000));
               }
               if (updatedPull) {
                 if (updatedPull.data.mergeable === null) {
@@ -184,7 +185,7 @@ jobs:
               });
             }
             dumpObject('result', result);
-            core.setOutput('warning', "Test warning");
+            core.setOutput('error', "Test error");
 
             return result;
 
@@ -282,16 +283,16 @@ jobs:
 
             return matrix;
 
-  #ump:
-  # name: Dump
-  # needs: setup
-  # runs-on: ubuntu-latest
-  # steps:
-  #   - name: Report data
-  #     env:
-  #       DATA: ${{ needs.setup.outputs.matrix }}
-  #     run: |
-  #       printf '%s' "$DATA" | jq
+  dump:
+    name: Dump
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report data
+        env:
+          DATA: ${{ needs.setup.outputs.matrix }}
+        run: |
+          printf '%s' "$DATA" | jq
 
   #un:
   # name: Run
@@ -319,3 +320,17 @@ jobs:
   #       echo "Ref:  ${{ matrix.source.ref  }}"
   #       echo "nixPath: ${{ matrix.nixPath }}"
 
+  report_errors:
+    name: Report errors
+    needs:
+      - setup
+      - dump
+    on: >-
+      ${{ always() && (needs.setup.result == 'success') && (needs.setup.outputs.error) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report setup errors
+        run: |
+          printf '%s\n' \
+            "${{ needs.setup.outputs.error }}"
+          exit 1
