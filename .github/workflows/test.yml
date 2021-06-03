@@ -144,6 +144,7 @@ jobs:
             for (pull of pulls.data) {
               let updatedPull
               for (let i = 1; i <= 10; ++i) {
+                await new Promise(r => setTimeout(r, i * 1000));
                 try {
                   updatedPull = await github.pulls.get({ ...upstreamRepoName, pull_number: pull.number });
                   dumpObject('updatedPull', updatedPull);
@@ -154,7 +155,6 @@ jobs:
                 if (updatedPull && (updatedPull.data.mergeable !== null)) {
                   break;
                 }
-                await new Promise(r => setTimeout(r, i * 1000));
               }
               if (updatedPull) {
                 if (updatedPull.data.mergeable === null) {
