@@ -154,7 +154,7 @@ jobs:
                 if (updatedPull && (updatedPull.data.mergeable !== null)) {
                   break;
                 }
-                await sleep(i * 1000);
+                await new Promise(r => setTimeout(r, i * 1000));
               }
               if (updatedPull) {
                 if (updatedPull.data.mergeable === null) {
