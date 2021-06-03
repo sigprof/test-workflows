@@ -174,16 +174,19 @@ jobs:
               }
             }
 
-            let sources = []
+            let result = {
+              source: []
+            };
             for (number of pullNumbers) {
-              sources.push({
-                ...upstreamRepoName,
+              result.source.push({
+                repo: `${upstreamRepoName.owner}/${upstreamRepoName.repo}`,
                 ref: `refs/pull/${number}/merge`
               });
             }
-            dumpObject('sources', sources);
+            dumpObject('result', result);
+            core.setOutput('warning', "Test warning");
 
-            return sources;
+            return result;
 
       - id: matrix
         name: Prepare the matrix
@@ -211,7 +214,7 @@ jobs:
             function parseSource(source) {
               if (typeof source === "string") {
                 const match = source.match(/^([^\/]*(?:\/[^\/]*)?)(?:\/(.*))?$/);
-                return { repo: match[1], ref: match[2] };
+                return { repo: match[1], ref: match[2] || "" };
               }
               return source;
             }
