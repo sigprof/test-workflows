@@ -12,34 +12,61 @@ on:
         required: true
         default: "default"
 
-env:
-  TEST_MODE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.mode) || 'default' }}
-  TEST_MATRIX:
-    os:
-      - ubuntu-latest
-      - macos-latest
-
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    outputs:
+      strategy: ${{ steps.strategy.outputs.result }}
+    steps:
+      - id: strategy
+        name: Determine strategy for the build
+        uses: actions/github-script@v5.0.0
+        with:
+          script: |
+            const quickMatrix = {
+              os: [
+                "ubuntu-latest"
+              ]
+            };
+            const defaultMatrix = {
+              os: [
+                "ubuntu-latest",
+                "macos-latest"
+              ]
+            };
+
+            let mode = "default";
+            if (context.eventName == "workflow_dispatch") {
+              const payload = context.payload;
+              const inputs = payload && payload.inputs;
+              mode = inputs && inputs.mode && inputs.mode.trim() || "default";
+            } else if (context.eventName == "schedule") {
+              mode = "full";
+            }
+
+            return {
+              "fail-fast": !(mode == "full"),
+              "matrix": (mode == "quick") ? quickMatrix : fullMatrix
+            };
+    
   dump:
     name: Dump
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Report data
+        env:
+          DATA: ${{ needs.setup.outputs.strategy }}
         run: |
-          printf 'TEST_MODE="%s"\n' "$TEST_MODE"
-          printf 'TEST_MATRIX="%s"\n' "$TEST_MATRIX"
+          printf '%s' "$DATA" | jq
 
-  #build:
-  #  name: Build
-  #  needs: dump
-  #  strategy:
-  #    fail-fast: ${{ !(env.TEST_MODE == 'full') }}
-  #    matrix:
-  #      os:
-  #        - ubuntu-latest
-  #        - macos-latest
-  #  runs-on: ${{ matrix.os }}
-  #  steps:
-  #    - name: Fail
-  #      run: |
-  #        false
+  build:
+    name: Build
+    needs: setup
+    strategy: ${{ fromJSON(needs.setup.outputs.strategy }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Fail
+        run: |
+          false
