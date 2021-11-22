@@ -45,10 +45,16 @@ jobs:
               mode = "full";
             }
 
-            return {
+            const strategy = {
               "fail-fast": !(mode == "full"),
               "matrix": (mode == "quick") ? quickMatrix : defaultMatrix
             };
+
+            core.startGroup("Job strategy:");
+            core.info(JSON.stringify(strategy, null, 2));
+            core.endGroup();
+
+            return strategy;
     
   dump:
     name: Dump
