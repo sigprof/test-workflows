@@ -13,6 +13,7 @@ on:
         default: "default"
 
 jobs:
+  # The `setup` job determines the strategy for the real CI build job.
   setup:
     name: Setup
     runs-on: ubuntu-latest
@@ -20,15 +21,18 @@ jobs:
       strategy: ${{ steps.strategy.outputs.result }}
     steps:
       - id: strategy
-        name: Determine strategy for the build
+        name: Determine build strategy
         uses: actions/github-script@v5.0.0
         with:
           script: |
+            // Matrix for the "quick" mode.
             const quickMatrix = {
               os: [
                 "ubuntu-latest"
               ]
             };
+
+            // Matrix for the "default" and "full" modes.
             const defaultMatrix = {
               os: [
                 "ubuntu-latest",
@@ -36,6 +40,7 @@ jobs:
               ]
             };
 
+            // Determine the mode from workflow inputs.
             let mode = "default";
             if (context.eventName == "workflow_dispatch") {
               const payload = context.payload;
@@ -45,17 +50,21 @@ jobs:
               mode = "full";
             }
 
+            // Determine build strategy according to the selected mode.
             const strategy = {
               "fail-fast": !(mode == "full"),
               "matrix": (mode == "quick") ? quickMatrix : defaultMatrix
             };
 
+            // Print the resulting strategy to the log.
             core.startGroup("Job strategy:");
             core.info(JSON.stringify(strategy, null, 2));
             core.endGroup();
 
+            // Return the strategy as the step output in the JSON format.
             return strategy;
     
+  # The real CI build job.
   build:
     name: Build
     needs: setup
