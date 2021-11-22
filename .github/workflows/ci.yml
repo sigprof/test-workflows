@@ -14,6 +14,10 @@ on:
 
 env:
   TEST_MODE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.mode) || 'default' }}
+  TEST_MATRIX:
+    os:
+      - ubuntu-latest
+      - macos-latest
 
 jobs:
   dump:
@@ -23,18 +27,19 @@ jobs:
       - name: Report data
         run: |
           printf 'TEST_MODE="%s"\n' "$TEST_MODE"
+          printf 'TEST_MATRIX="%s"\n' "$TEST_MATRIX"
 
-  build:
-    name: Build
-    needs: dump
-    strategy:
-      fail-fast: ${{ !(env.TEST_MODE == 'full') }}
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Fail
-        run: |
-          false
+  #build:
+  #  name: Build
+  #  needs: dump
+  #  strategy:
+  #    fail-fast: ${{ !(env.TEST_MODE == 'full') }}
+  #    matrix:
+  #      os:
+  #        - ubuntu-latest
+  #        - macos-latest
+  #  runs-on: ${{ matrix.os }}
+  #  steps:
+  #    - name: Fail
+  #      run: |
+  #        false
