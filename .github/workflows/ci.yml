@@ -1,0 +1,30 @@
+name: CI Test
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: |
+          'quick' — only ubuntu-latest/nixos-stable;
+          'default' — all combinations with fail-fast;
+          'full' — all combinations without fail-fast.
+        required: true
+        default: "default"
+
+env:
+  TEST_MODE: '${{
+      (github.event_name == ''workflow_dispatch'' && github.event.inputs.mode) || ''default''
+    }}'
+
+jobs:
+  dump:
+    name: Dump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report data
+        run: |
+          printf 'TEST_MODE="%s"\n' "$TEST_MODE"
