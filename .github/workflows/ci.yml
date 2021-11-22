@@ -8,17 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: |
-          'quick' — only ubuntu-latest/nixos-stable;
-          'default' — all combinations with fail-fast;
-          'full' — all combinations without fail-fast.
+        description: 'Test mode: quick|default|full'
         required: true
         default: "default"
 
 env:
-  TEST_MODE: '${{
-      (github.event_name == ''workflow_dispatch'' && github.event.inputs.mode) || ''default''
-    }}'
+  TEST_MODE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.mode) || 'default' }}
 
 jobs:
   dump:
