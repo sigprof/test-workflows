@@ -56,17 +56,6 @@ jobs:
 
             return strategy;
     
-  dump:
-    name: Dump
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Report data
-        env:
-          DATA: ${{ needs.setup.outputs.strategy }}
-        run: |
-          printf '%s' "$DATA" | jq
-
   build:
     name: Build
     needs: setup
