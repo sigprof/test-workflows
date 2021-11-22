@@ -64,7 +64,7 @@ jobs:
   build:
     name: Build
     needs: setup
-    strategy: ${{ fromJSON(needs.setup.outputs.strategy }}
+    strategy: ${{ fromJSON(needs.setup.outputs.strategy) }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Fail
