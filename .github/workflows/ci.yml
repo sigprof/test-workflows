@@ -47,7 +47,7 @@ jobs:
 
             return {
               "fail-fast": !(mode == "full"),
-              "matrix": (mode == "quick") ? quickMatrix : fullMatrix
+              "matrix": (mode == "quick") ? quickMatrix : defaultMatrix
             };
     
   dump:
