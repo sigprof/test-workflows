@@ -43,7 +43,6 @@ jobs:
     strategy:
       matrix: ${{ needs.setup.outputs.matrix }}
     runs-on: ${{ matrix.os.runs_on }}
-    if: matrix.nix.flake
     steps:
       - name: Report matrix value
         env:
@@ -55,9 +54,11 @@ jobs:
         run: |
           echo "Running flake tests..."
       - name: Set NIX_PATH for non-flake tests
+        if: matrix.nix.channel
         run: |
           echo "NIX_PATH=nixpkgs=channel:${{matrix.nix.channel}}" >> "$GITHUB_ENV"
       - name: Non-flake tests
+        if: matrix.nix.channel
         run: |
           echo "Running non-flake tests..."
 
