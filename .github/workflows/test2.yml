@@ -11,9 +11,9 @@ jobs:
             runs_on: ubuntu-latest
           - system: x86_64-darwin
             runs_on: macos-latest
+        test:
+          - value1
     runs-on: ubuntu-latest
     steps:
       - run: |
-        echo 'os: ${{ matrix.os }}'
-        echo 'os.system: ${{ matrix.os.system }}'
-        echo 'os.runs_on: ${{ matrix.os.runs_on }}'
+        echo 'test: ${{ matrix.test }}'
