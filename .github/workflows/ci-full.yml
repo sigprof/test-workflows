@@ -14,9 +14,49 @@ on:
 
 jobs:
   setup:
+    strategy:
+      matrix:
+        # The value of `data` must be a sequence with a single element, which is
+        # a mapping that will be used as the matrix for the actual build job.
+        # Apparently this is the only way to keep the matrix represented in the
+        # YAML form while still being able to process it as data.
+        data:
+          - x86_64-linux:
+              flake:
+                check:
+                  - pkg1
+                  - pkg2
+              nur:
+                check:
+                  - pkg1
+                  - pkg2
+                channel:
+                  - nixos-21.11
+                  - nixos-unstable
+                  - nixpkgs-unstable
+              nur-main:
+                check:
+                  - pkg1
+                  - pkg2
+                channel:
+                  - nixos-22.05
+              flake-hosts:
+                check:
+                  - host-1
+                  - host-2
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.result }}
     steps:
-      - run: echo "Dummy setup"
+      - id: matrix
+        name: Prepare matrix
+        env:
+          DATA: ${{ toJSON(matrix.data) }}
+        run: |
+          if ${{ !!inputs.flake_only }}; then
+            DATA="$(jq -c -n 'env.DATA | fromjson | .nix |= [{flake: "flake"}]')"
+          fi
+          jq -r -n 'env.DATA | fromjson | @json "::set-output name=result::\(.)"'
  
   x86_64-linux:
     needs:
@@ -25,6 +65,7 @@ jobs:
     with:
       system: x86_64-linux
       runs-on: ubuntu-latest
+      matrix: ${{ toJSON(fromJSON(needs.setup.output.matrix).x86-64-linux) }}
     secrets: inherit
 
   finish:

@@ -8,16 +8,15 @@ on:
       runs-on:
         required: true
         type: string
+      matrix:
+        required: true
+        type: string
 
 jobs:
   flake:
     runs-on: ${{ inputs.runs-on }}
     strategy:
-      matrix:
-        check:
-          - pkg1
-          - pkg2
-          - pkg3
+      matrix: ${{ fromJSON(inputs.matrix).flake }}
     steps:
       - run: |
           echo "Building ${{ matrix.check }}"
@@ -25,15 +24,7 @@ jobs:
   nur:
     runs-on: ${{ inputs.runs-on }}
     strategy:
-      matrix:
-        check:
-          - pkg1
-          - pkg2
-          - pkg3
-        channel:
-          - nixos-21.11
-          - nixos-unstable
-          - nixpkgs-unstable
+      matrix: ${{ fromJSON(inputs.matrix).nur }}
     steps:
       - run: |
           echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
@@ -43,13 +34,7 @@ jobs:
       - flake
     runs-on: ${{ inputs.runs-on }}
     strategy:
-      matrix:
-        check:
-          - pkg1
-          - pkg2
-          - pkg3
-        channel:
-          - nixos-22.05
+      matrix: ${{ fromJSON(inputs.matrix).nur-main }}
     steps:
       - run: |
           echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
@@ -59,11 +44,7 @@ jobs:
       - flake
     runs-on: ${{ inputs.runs-on }}
     strategy:
-      matrix:
-        check:
-          - host-1
-          - host-2
-          - host-3
+      matrix: ${{ fromJSON(inputs.matrix).flake-hosts }}
     steps:
       - run: |
           echo "Building ${{ matrix.check }}"
