@@ -41,7 +41,7 @@ jobs:
     needs:
       - setup
     strategy:
-      matrix: ${{ needs.setup.outputs.matrix }}
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     runs-on: ${{ matrix.os.runs_on }}
     steps:
       - name: Report matrix value
