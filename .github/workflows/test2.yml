@@ -12,9 +12,8 @@ jobs:
           - system: x86_64-darwin
             runs_on: macos-latest
         include:
-          - channel:
-              - nixos-22.05
-              - nixos-unstable
+          - channel: nixos-22.05
+          - channel: nixos-unstable
           - flake: true
     runs-on: ubuntu-latest
     steps:
