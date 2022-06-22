@@ -4,12 +4,13 @@ on:
 
 jobs:
   test:
-    matrix:
-      os:
-        - system: x86_64-linux
-          runs_on: ubuntu-latest
-        - system: x86_64-darwin
-          runs_on: macos-latest
+    strategy:
+      matrix:
+        os:
+          - system: x86_64-linux
+            runs_on: ubuntu-latest
+          - system: x86_64-darwin
+            runs_on: macos-latest
     runs-on: ubuntu-latest
     steps:
       - run: |
