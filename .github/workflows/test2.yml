@@ -16,6 +16,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Debug print
-        run: |
-        echo 'test = ${{ matrix.test }}'
+        run: echo "test = ${{ matrix.test }}"
 
