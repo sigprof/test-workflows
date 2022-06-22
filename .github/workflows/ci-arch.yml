@@ -10,7 +10,7 @@ on:
         type: string
 
 jobs:
-  flake-packages:
+  flake:
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
 
   flake-hosts:
     needs:
-      - flake-packages
+      - flake
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
@@ -38,7 +38,7 @@ jobs:
 
   nur-main:
     needs:
-      - flake-packages
+      - flake
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
@@ -52,7 +52,7 @@ jobs:
       - run: |
           echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
 
-  nur-other:
+  nur:
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
