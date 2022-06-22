@@ -15,6 +15,7 @@ on:
 jobs:
   flake:
     runs-on: ${{ inputs.runs-on }}
+    if: fromJSON(inputs.matrix).flake.check[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake }}
     steps:
@@ -23,6 +24,9 @@ jobs:
 
   nur:
     runs-on: ${{ inputs.runs-on }}
+    if: >
+      fromJSON(inputs.matrix).nur.check[0] &&
+      fromJSON(inputs.matrix).nur.channel[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).nur }}
     steps:
@@ -33,6 +37,9 @@ jobs:
     needs:
       - flake
     runs-on: ${{ inputs.runs-on }}
+    if: >
+      fromJSON(inputs.matrix).nur-main.check[0] &&
+      fromJSON(inputs.matrix).nur-main.channel[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).nur-main }}
     steps:
