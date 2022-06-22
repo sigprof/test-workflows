@@ -22,19 +22,21 @@ jobs:
       - run: |
           echo "Building ${{ matrix.check }}"
 
-  flake-hosts:
-    needs:
-      - flake
+  nur:
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
         check:
-          - host-1
-          - host-2
-          - host-3
+          - pkg1
+          - pkg2
+          - pkg3
+        channel:
+          - nixos-21.11
+          - nixos-unstable
+          - nixpkgs-unstable
     steps:
       - run: |
-          echo "Building ${{ matrix.check }}"
+          echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
 
   nur-main:
     needs:
@@ -52,18 +54,16 @@ jobs:
       - run: |
           echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
 
-  nur:
+  flake-hosts:
+    needs:
+      - flake
     runs-on: ${{ inputs.runs-on }}
     strategy:
       matrix:
         check:
-          - pkg1
-          - pkg2
-          - pkg3
-        channel:
-          - nixos-21.11
-          - nixos-unstable
-          - nixpkgs-unstable
+          - host-1
+          - host-2
+          - host-3
     steps:
       - run: |
-          echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
+          echo "Building ${{ matrix.check }}"
