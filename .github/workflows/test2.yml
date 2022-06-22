@@ -8,7 +8,7 @@ jobs:
       matrix:
         nix:
           - channel: nixos-22.05
-            flake: true
+            flake: flake
           - channel: nixos-unstable
           - channel: nixpkgs-unstable
         os:
@@ -32,5 +32,5 @@ jobs:
           echo "NIX_PATH=nixpkgs=channel:${{matrix.nix.channel}}" >> "$GITHUB_ENV"
       - name: Non-flake tests
         run: |
-          echo "Running non-flake tests...
+          echo "Running non-flake tests..."
 
