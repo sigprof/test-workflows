@@ -38,8 +38,7 @@ jobs:
           if ${{ !!inputs.flake_only }}; then
             DATA="$(jq -c -n 'env.DATA | fromjson | .nix |= [{flake: "flake"}]')"
           fi
-          DATA="$(jq -c -n 'env.DATA | fromjson')"
-          printf '%s\n' "::set-output name=result::$DATA"
+          jq -r -n 'env.DATA | fromjson | @json "::set-output name=result::\(.)"'
 
   test:
     needs:
@@ -52,7 +51,7 @@ jobs:
         env:
           DATA: ${{ toJSON(matrix) }}
         run: |
-          printf '%s' "$DATA" | jq
+          jq -n 'env.DATA | fromjson'
       - name: Flake tests
         if: matrix.nix.flake
         run: |
