@@ -54,7 +54,7 @@ jobs:
           DATA: ${{ toJSON(matrix.data) }}
         run: |
           if ${{ !!inputs.flake_only }}; then
-            DATA="$(jq -c -n 'env.DATA | fromjson | .nur |= {} | .nur-main |= {}')"
+            DATA="$(jq -c -n 'env.DATA | fromjson | .nur |= {} | ."nur-main" |= {}')"
           fi
           jq -r -n 'env.DATA | fromjson | @json "::set-output name=result::\(.)"'
  
