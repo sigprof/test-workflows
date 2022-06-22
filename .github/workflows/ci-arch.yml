@@ -43,7 +43,7 @@ jobs:
     needs:
       - flake
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.matrix).flake-hosts
+    if: false
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake-hosts }}
     steps:
