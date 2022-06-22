@@ -38,6 +38,8 @@ jobs:
       - flake
     runs-on: ${{ inputs.runs-on }}
     if: >
+      always() &&
+      (needs.flake.result == 'success' || needs.flake.result == 'skipped') &&
       fromJSON(inputs.matrix).nur-main.check[0] &&
       fromJSON(inputs.matrix).nur-main.channel[0]
     strategy:
@@ -50,7 +52,10 @@ jobs:
     needs:
       - flake
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.matrix).flake-hosts.check[0]
+    if: >
+      always() &&
+      (needs.flake.result == 'success' || needs.flake.result == 'skipped') &&
+      fromJSON(inputs.matrix).flake-hosts.check[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake-hosts }}
     steps:
