@@ -23,9 +23,9 @@ jobs:
         data:
           - x86_64-linux:
               flake:
-                check:
-                  - pkg1
-                  - pkg2
+                #check:
+                #  - pkg1
+                #  - pkg2
               nur:
                 check:
                   - pkg1
@@ -38,8 +38,8 @@ jobs:
                 check:
                   - pkg1
                   - pkg2
-                channel: []
-                #  - nixos-22.05
+                channel:
+                  - nixos-22.05
               flake-hosts:
                 check:
                   - host-1
