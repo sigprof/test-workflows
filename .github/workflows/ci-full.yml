@@ -65,7 +65,7 @@ jobs:
     with:
       system: x86_64-linux
       runs-on: ubuntu-latest
-      matrix: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86-64-linux) }}
+      matrix: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux) }}
     secrets: inherit
 
   finish:
