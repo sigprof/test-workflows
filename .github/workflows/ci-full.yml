@@ -40,10 +40,10 @@ jobs:
                   - pkg2
                 channel:
                   - nixos-22.05
-              #flake-hosts:
-              #  check:
-              #    - host-1
-              #    - host-2
+              flake-hosts:
+                check: []
+                #  - host-1
+                #  - host-2
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.result }}
