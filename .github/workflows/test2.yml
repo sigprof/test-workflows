@@ -15,7 +15,7 @@ jobs:
             runs_on: ubuntu-latest
           - system: x86_64-darwin
             runs_on: macos-latest
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os.runs_on }}
     steps:
       - name: Report matrix value
         env:
