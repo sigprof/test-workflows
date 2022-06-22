@@ -1,21 +1,47 @@
 name: Test2
 on:
   workflow_dispatch:
+    inputs:
+      flake_only:
+        description: 'True to run flake tests only'
+        default: false
+        type: boolean
 
 jobs:
-  test:
+  setup:
     strategy:
       matrix:
-        nix:
-          - channel: nixos-22.05
-            flake: flake
-          - channel: nixos-unstable
-          - channel: nixpkgs-unstable
-        os:
-          - system: x86_64-linux
-            runs_on: ubuntu-latest
-          - system: x86_64-darwin
-            runs_on: macos-latest
+        data:
+          nix:
+            - channel: nixos-22.05
+              flake: flake
+            - channel: nixos-unstable
+            - channel: nixpkgs-unstable
+          os:
+            - system: x86_64-linux
+              runs_on: ubuntu-latest
+            - system: x86_64-darwin
+              runs_on: macos-latest
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.result }}
+    steps:
+      - id: matrix
+        name: Prepare matrix
+        env:
+          DATA= ${{ toJSON(matrix.data) }}
+        run: |
+          if ${{ !!inputs.flake_only }}; then
+            DATA="$(printf '%s' "$DATA" | jq '.nix |= [{flake: "flake"}]')"
+          fi
+          DATA="$(printf '%s' "$DATA" | jq -c)"
+          printf '%s\n' "::set-output name=result::$DATA"
+
+  test:
+    needs:
+      - setup
+    strategy:
+      matrix: ${{ needs.setup.outputs.matrix }}
     runs-on: ${{ matrix.os.runs_on }}
     if: matrix.nix.flake
     steps:
