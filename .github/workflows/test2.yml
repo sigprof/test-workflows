@@ -6,15 +6,15 @@ jobs:
   test:
     strategy:
       matrix:
-        #os:
-        #  - system: x86_64-linux
-        #    runs_on: ubuntu-latest
-        #  - system: x86_64-darwin
-        #    runs_on: macos-latest
-        test:
-          - value1
+        os:
+          - system: x86_64-linux
+            runs_on: ubuntu-latest
+          - system: x86_64-darwin
+            runs_on: macos-latest
     runs-on: ubuntu-latest
     steps:
       - name: Debug print
-        run: echo "test = ${{ matrix.test }}"
+        run: echo "os = ${{ matrix.os }}"
+      - name: Debug print 2
+        run: echo "os.system = ${{ matrix.os.system }}"
 
