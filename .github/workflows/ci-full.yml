@@ -1,5 +1,10 @@
 name: CI Full
 on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
   workflow_dispatch:
     inputs:
       flake_only:
@@ -8,9 +13,23 @@ on:
         type: boolean
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Dummy setup"
+ 
   x86_64-linux:
+    needs:
+      - setup
     uses: ./.github/workflows/ci-arch.yml
     with:
       system: x86_64-linux
       runs-on: ubuntu-latest
     secrets: inherit
+
+  finish:
+    needs:
+      - x86_64-linux
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Dummy finish"
