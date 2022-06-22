@@ -11,6 +11,10 @@ jobs:
   setup:
     strategy:
       matrix:
+        # The value of `data` must be a sequence with a single element, which is
+        # a mapping that will be used as the matrix for the actual build job.
+        # Apparently this is the only way to keep the matrix represented in the
+        # YAML form while still being able to process it as data.
         data:
           - nix:
               - channel: nixos-22.05
@@ -32,9 +36,9 @@ jobs:
           DATA: ${{ toJSON(matrix.data) }}
         run: |
           if ${{ !!inputs.flake_only }}; then
-            DATA="$(printf '%s' "$DATA" | jq '.nix |= [{flake: "flake"}]')"
+            DATA="$(jq -c -n 'env.DATA | fromjson | .nix |= [{flake: "flake"}]')"
           fi
-          DATA="$(printf '%s' "$DATA" | jq -c)"
+          DATA="$(jq -c -n 'env.DATA | fromjson')"
           printf '%s\n' "::set-output name=result::$DATA"
 
   test:
