@@ -11,10 +11,15 @@ jobs:
             runs_on: ubuntu-latest
           - system: x86_64-darwin
             runs_on: macos-latest
+        include:
+          - channel:
+              - nixos-22.05
+              - nixos-unstable
+          - flake: true
     runs-on: ubuntu-latest
     steps:
-      - name: Debug print
-        run: echo "os = ${{ matrix.os }}"
-      - name: Debug print 2
-        run: echo "os.system = ${{ matrix.os.system }}"
-
+      - name: Report matrix value
+        env:
+          DATA: ${{ toJSON(matrix) }}
+        run: |
+          printf '%s' "$DATA" | jq
