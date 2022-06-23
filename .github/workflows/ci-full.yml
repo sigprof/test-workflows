@@ -64,7 +64,7 @@ jobs:
         env:
           DATA: ${{ toJSON(matrix.data) }}
         run: |
-          if [ "$flake_only" = "true" ]; then
+          if ${{ env.flake_only }}; then
             export DATA="$(jq -c -n 'env.DATA | fromjson | .[].nur |= {} | .[]."nur-main" |= {}')"
           fi
           jq -n 'env.DATA | fromjson'
