@@ -12,6 +12,17 @@ on:
         default: false
         type: boolean
 
+env:
+  flake_only: >
+    ${{
+      (!!inputs.flake_only) ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == 'sigprof/test-workflows' &&
+        github.event.pull_request.head.ref, 'automatic-flake-bump'
+      )
+    }}
+
 jobs:
   setup:
     strategy:
@@ -53,7 +64,7 @@ jobs:
         env:
           DATA: ${{ toJSON(matrix.data) }}
         run: |
-          if ${{ !!inputs.flake_only }}; then
+          if [ "$flake_only" = "true" ]; then
             export DATA="$(jq -c -n 'env.DATA | fromjson | .[].nur |= {} | .[]."nur-main" |= {}')"
           fi
           jq -n 'env.DATA | fromjson'
