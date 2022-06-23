@@ -15,7 +15,7 @@ jobs:
         uses: cpcloud/flake-update-action@v1.0.2
         with:
           dependency: ${{ matrix.dependency }}
-          pull-request-token: ${{ secrets.MY_PR_TOKEN }}
+          pull-request-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           pull-request-author: "Sergey Vlasov <616082+sigprof@users.noreply.github.com>"
           delete-branch: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
