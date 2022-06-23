@@ -11,6 +11,14 @@ jobs:
         dependency:
           - nixpkgs
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v17
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
       - name: Update ${{ matrix.dependency }}
         uses: cpcloud/flake-update-action@v1.0.2
         with:
