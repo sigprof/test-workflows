@@ -69,6 +69,7 @@ jobs:
           fi
           jq -n 'env.DATA | fromjson'
           jq -r -n 'env.DATA | fromjson | @json "::set-output name=result::\(.)"'
+          false
  
   x86_64-linux:
     needs:
