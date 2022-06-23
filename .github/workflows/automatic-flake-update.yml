@@ -1,0 +1,23 @@
+name: Automatic flake update
+on:
+  workflow_dispatch:
+
+jobs:
+  update-deps:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dependency:
+          - nixpkgs
+    steps:
+      - name: Update ${{ matrix.dependency }}
+        uses: cpcloud/flake-update-action@v1.0.2
+        with:
+          dependency: ${{ matrix.dependency }}
+          pull-request-token: ${{ secrets.MY_PR_TOKEN }}
+          pull-request-author: "Sergey Vlasov <616082+sigprof@users.noreply.github.com>"
+          delete-branch: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-branch-prefix: automatic-flake-update/
+          automerge: true
