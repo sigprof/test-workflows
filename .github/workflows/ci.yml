@@ -71,6 +71,6 @@ jobs:
     strategy: ${{ fromJSON(needs.setup.outputs.strategy) }}
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Fail
+      - name: Success
         run: |
-          false
+          true
