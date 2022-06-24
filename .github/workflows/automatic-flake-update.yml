@@ -3,15 +3,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-deps:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.generate_matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v17
+
+      - name: Generate matrix from flake inputs
+        id: generate_matrix
+        run: |
+          set -euo pipefail
+          matrix="$(nix flake metadata --json | jq -rcM '.locks.nodes.root.inputs | {input: keys}')"
+          echo "::set-output name=matrix::$matrix"
+
+  update_input:
+    needs:
+      - setup
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        dependency:
-          - nixpkgs
+      matrix: ${{ fromJSON(needs.setup.output.matrix) }}
     env:
-      automerge: ${{ matrix.dependency == 'nixpkgs' }}
+      automerge: ${{ matrix.input == 'nixpkgs' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.2
@@ -28,10 +46,10 @@ jobs:
           app_id: ${{ secrets.APP_ID }}
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - name: Update ${{ matrix.dependency }}
+      - name: Update ${{ matrix.input }}
         uses: cpcloud/flake-update-action@v1.0.2
         with:
-          dependency: ${{ matrix.dependency }}
+          dependency: ${{ matrix.input }}
           pull-request-token: ${{ steps.generate-token.outputs.token }}
           pull-request-author: "sigprof[bot] <sigprof[bot]@users.noreply.github.com>"
           pull-request-labels: dependencies
