@@ -32,6 +32,7 @@ jobs:
           dependency: ${{ matrix.dependency }}
           pull-request-token: ${{ steps.generate-token.outputs.token }}
           pull-request-author: "sigprof[bot] <sigprof[bot]@users.noreply.github.com>"
+          pull-request-labels: dependencies
           delete-branch: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-branch-prefix: automatic-flake-update/
