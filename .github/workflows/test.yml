@@ -108,7 +108,7 @@ jobs:
 
             let personalBranch
             try {
-              personalBranch = await github.repos.getBranch(myBranchName);
+              personalBranch = await github.rest.repos.getBranch(myBranchName);
               dumpObject('personalBranch', personalBranch);
             } catch (e) {
               dumpObject('Error getting personalBranch', e);
@@ -127,7 +127,7 @@ jobs:
 
             let pulls
             try {
-              pulls = await github.pulls.list({
+              pulls = await github.rest.pulls.list({
                 ...upstreamRepoName,
                 state: 'open',
                 head: `${myBranchName.owner}:${myBranchName.branch}`,
@@ -152,7 +152,7 @@ jobs:
               let updatedPull
               for (let i = 1; i <= 10; ++i) {
                 try {
-                  updatedPull = await github.pulls.get({ ...upstreamRepoName, pull_number: pull.number });
+                  updatedPull = await github.rest.pulls.get({ ...upstreamRepoName, pull_number: pull.number });
                   dumpObject('updatedPull', updatedPull);
                 } catch (e) {
                   dumpObject('Error getting updated pull request data', e);
