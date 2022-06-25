@@ -6,8 +6,10 @@ on:
     branches:
       - "**"
 
-  # Run when a pull request gets labeled.
-  pull_request:
+  # Run when a pull request gets labeled.  Note that the workflow runs from the
+  # base branch of the PR in this case, because `pull_request_target` is used
+  # instead of `pull_request`.
+  pull_request_target:
     types:
       - labeled
 
