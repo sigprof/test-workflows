@@ -23,12 +23,15 @@ jobs:
       - setup
     strategy:
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    outputs:
+      output_${{strategy.job-index}}: ${{steps.step1.outputs.output}}
     runs-on: ubuntu-latest
     steps:
-      - name: Pretend we are doing something
+      - id: step1
+        name: Pretend we are doing something
         run: |
           output='${{matrix.os}}:${{matrix.node-version}}'
-          echo '::set-output name=output_${{strategy.job-index}}::$output'
+          echo '::set-output name=output::$output'
 
   summarize:
     needs:
