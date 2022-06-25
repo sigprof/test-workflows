@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.setup.output.matrix) }}
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     env:
       automerge: ${{ matrix.input == 'nixpkgs' }}
     steps:
