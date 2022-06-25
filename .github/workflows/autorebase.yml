@@ -18,8 +18,7 @@ jobs:
       - name: Debug
         env:
           context_github: ${{ toJSON(github) }}
-        run: |
-          jq -nC 'env.context_github | fromjson'
+        run: true
 
       - id: token
         name: Generate a GitHub token
