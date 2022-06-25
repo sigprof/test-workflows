@@ -15,6 +15,12 @@ jobs:
   autorebase:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug
+        env:
+          context_github: ${{ toJSON(github) }}
+        run: |
+          jq -nC 'env.context_github | fromjson'
+
       - id: token
         name: Generate a GitHub token
         uses: tibdex/github-app-token@v1.5.2
