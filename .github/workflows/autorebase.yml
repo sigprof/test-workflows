@@ -1,10 +1,10 @@
 name: autorebase
 
 on:
-  # Run on every push.
-  # FIXME: This may be too much - additional filtering may be required to
-  # reduce the load.
+  # Run on every push to any branch (not a tag).
   push:
+    branches:
+      - "**"
 
   # Run when a pull request gets labeled.
   pull_request:
