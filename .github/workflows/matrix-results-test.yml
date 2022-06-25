@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: collect
-        uses: actions/github-script@v6
-        with:
-          script: |
-            console.log(context)
+        env:
+          OUTPUTS: ${{ toJSON(needs.build.outputs) }}
+        run: |
+          jq -n 'env.OUTPUTS | fromjson'
