@@ -52,7 +52,7 @@ jobs:
           dependency: ${{ matrix.input }}
           pull-request-token: ${{ steps.generate-token.outputs.token }}
           pull-request-author: "sigprof[bot] <sigprof[bot]@users.noreply.github.com>"
-          pull-request-labels: dependencies
+          pull-request-labels: "dependencies, autorebase:opt-in"
           delete-branch: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-branch-prefix: automatic-flake-update/
