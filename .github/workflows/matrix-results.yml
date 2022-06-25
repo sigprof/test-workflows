@@ -1,6 +1,6 @@
 name: Matrix Results
 on:
-  - workflow-dispatch:
+  workflow-dispatch:
 
 jobs:
   setup:
