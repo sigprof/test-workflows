@@ -35,3 +35,4 @@ jobs:
         with:
           token: ${{ steps.token.outputs.token }}
           include-labels: "autorebase:opt-in"
+          base: ${{ github.ref_name }}
