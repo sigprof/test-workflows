@@ -1,0 +1,30 @@
+name: autorebase
+
+on:
+  # Run on every push.
+  # FIXME: This may be too much - additional filtering may be required to
+  # reduce the load.
+  push:
+
+  # Run when a pull request gets labeled.
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  autorebase:
+    runs-on: ubuntu-latest
+    steps:
+      - id: token
+        name: Generate a GitHub token
+        uses: tibdex/github-app-token@v1.5.2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - id: rebase
+        name: Rebase the eligible PRs
+        uses: peter-evans/rebase@v2.0.0
+        with:
+          token: ${{ steps.token.outputs.token }}
+          include-labels: "autorebase:opt-in"
