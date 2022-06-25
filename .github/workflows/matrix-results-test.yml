@@ -23,23 +23,30 @@ jobs:
       - setup
     strategy:
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    outputs:
-      output_${{strategy.job-index}}: ${{steps.step1.outputs.output}}
     runs-on: ubuntu-latest
     steps:
       - id: step1
         name: Pretend we are doing something
         run: |
-          output='${{matrix.os}}:${{matrix.node-version}}'
-          echo '::set-output name=output::$output'
+          echo '${{matrix.os}}:${{matrix.node-version}}' > output_${{strategy.job-index}}.txt
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: build-output
+          path: output_${{strategy.job-index}}.txt
+          if-no-files-found: error
+          retention-days: 1
 
   summarize:
     needs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - id: collect
-        env:
-          OUTPUTS: ${{ toJSON(needs.build.outputs) }}
+      - name: Download build results
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: build-output
+          path: build-output
+      - name: Report build results
         run: |
-          jq -n 'env.OUTPUTS | fromjson'
+          grep . build-outputs/output_*.txt
