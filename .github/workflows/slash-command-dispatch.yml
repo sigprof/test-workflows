@@ -1,0 +1,26 @@
+name: Slash Command Dispatch
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  slash-command-dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a GitHub token
+        id: token
+        uses: tibdex/github-app-token@v1.5.2
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Slash Command Dispatch
+        uses: peter-evans/slash-command-dispatch@v3.0.0
+        with:
+          token: ${{ steps.token.output.token }}
+          reaction-token: ${{ steps.token.output.token }}
+          commands: |
+            rebase
+          permission: write
+          issue-type: pull-request
