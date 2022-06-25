@@ -1,0 +1,42 @@
+name: Matrix Results
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          DATA: |
+            {
+              "os": ["ubuntu-latest", "macos-latest"],
+              "node-version": ["14", "16"]
+            }
+        run: |
+          jq -rn 'env.DATA | fromjson | @json "::set-output name=matrix::\(.)"
+
+  build:
+    needs:
+      - setup
+    strategy:
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pretend we are doing something
+        run: |
+          output='${{matrix.os}}:${{matrix.node-version}}'
+          echo '::set-output name=output_${{strategy.job-index}}::$output'
+
+  summarize:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - id: collect
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(context)
