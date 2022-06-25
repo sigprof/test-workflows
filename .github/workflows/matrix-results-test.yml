@@ -49,4 +49,4 @@ jobs:
           path: build-output
       - name: Report build results
         run: |
-          grep . build-outputs/output_*.txt
+          grep . build-output/output_*.txt
