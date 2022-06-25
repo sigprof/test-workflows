@@ -18,8 +18,8 @@ jobs:
       - name: Slash Command Dispatch
         uses: peter-evans/slash-command-dispatch@v3.0.0
         with:
-          token: ${{ steps.token.output.token }}
-          reaction-token: ${{ steps.token.output.token }}
+          token: ${{ steps.token.outputs.token }}
+          reaction-token: ${{ steps.token.outputs.token }}
           commands: |
             rebase
           permission: write
