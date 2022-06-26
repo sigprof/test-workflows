@@ -18,5 +18,22 @@
         inherit (pkgs) hello firefox jq;
         default = pkgs.hello;
       });
+    })
+    // (let
+      system = flake-utils.lib.system.x86_64-linux;
+    in {
+      nixosConfigurations = {
+        "example/minimal" = nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [
+            {
+              system.stateVersion = "22.05";
+              networking.hostName = "minimal";
+              fileSystems."/".device = "/dev/sda1";
+              boot.loader.grub.device = "/dev/sda";
+            }
+          ];
+        };
+      };
     });
 }
