@@ -1,0 +1,73 @@
+name: ci-build-step
+description: CI Build Step
+author: Sergey Vlasov
+inputs:
+  item:
+    required: true
+    description: The item to build specified in the JSON format
+  system:
+    required: true
+    description: Nix system name
+  cachix-name:
+    required: false
+    description: Cachix cache name
+  cachix-auth-token:
+    required: false
+    description: Cachix auth token
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3.0.2
+    - name: Install Nix
+      uses: cachix/install-nix-action@v17
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v10
+      with:
+        name: ${{ inputs.cachix-name }}
+        authToken: '${{ inputs.cachix-auth-token }}'
+    - name: Build
+      shell: bash
+      env:
+        ITEM: ${{ inputs.item }}
+        SYSTEM: ${{ inputs.system }}
+      run: |
+        echo "::group::Determining arguments for 'nix build'"
+        build_args="$(
+          jq -rn --arg system "$SYSTEM" '
+            env.ITEM | fromjson |
+              (.packages[] | @text ".#packages."+$system+".\(.)")?,
+              (.checks[] | @text ".#checks."+$system+".\(.)")?,
+              (.hosts[] | @text ".#nixosConfigurations.\(.).config.system.build.toplevel")?
+          '
+        )"
+        printf '  %s\n' $build_args
+        echo "::endgroup::"
+        echo "::group::Creating derivations for build"
+        build_output="$( nix build --dry-run --json $build_args )"
+        drv_list="$(
+          printf '%s' "$build_output" | jq -r '.[].drvPath'
+        )"
+        echo "::endgroup::"
+        echo "::group::Derivation list:"
+        printf '  %s\n' "$drv_list"
+        echo "::endgroup::"
+        echo "::group::Building derivations"
+        build_result=0
+        nix build --print-build-logs --json $drv_list || build_result=$?
+        echo "::endgroup::"
+        echo "::group::Saving build logs"
+        mkdir -p .build/logs
+        for drv in $drv_list; do
+          name="${drv##*/}"
+          nix log "$drv" > .build/logs/"${name}.log" ||:
+        done
+        echo "::endgroup::"
+        exit $build_result
+    - name: Upload build logs
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        name: build-logs-${{inputs.system}}-${{github.job}}-${{strategy.job-index}}
+        path: ".build/logs/*"
+        if-no-files-found: ignore
