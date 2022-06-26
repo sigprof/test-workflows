@@ -12,7 +12,16 @@ on:
         default: false
         type: boolean
 
+defaults:
+  run:
+    # Use `bash` by default.  Note that, according to the documentation, the
+    # real command is `bash --noprofile --norc -eo pipefail {0}`, which makes
+    # the shell catch any errors in pipelines.
+    shell: bash
+
 env:
+  CACHIX_NAME: sigprof
+
   flake_only: >-
     ${{
       (!!inputs.flake_only) ||
@@ -57,18 +66,21 @@ jobs:
                   - host-2
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.matrix.outputs.result }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v2.4.2
+      - uses: cachix/install-nix-action@v17
+      - uses: cachix/cachix-action@v10
+        with:
+          name: ${{ env.CACHIX_NAME }}
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: "pre-commit-hooks"
+      - run: nix flake check --no-build
       - id: matrix
         name: Prepare matrix
-        env:
-          DATA: ${{ toJSON(matrix.data) }}
         run: |
-          if [ "$flake_only" = "true" ]; then
-            export DATA="$(jq -c -n 'env.DATA | fromjson | .[].nur |= {} | .[]."nur-main" |= {}')"
-          fi
-          jq -n 'env.DATA | fromjson'
-          jq -r -n 'env.DATA | fromjson | @json "::set-output name=result::\(.)"'
+          matrix="$(nix eval --json .\#lib.ciOutputs)"
+          printf '::set-output name=matrix::%s\n' "$matrix"
  
   x86_64-linux:
     needs:
