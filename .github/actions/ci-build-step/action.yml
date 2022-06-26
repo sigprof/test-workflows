@@ -30,6 +30,7 @@ runs:
         ITEM: ${{ inputs.item }}
         SYSTEM: ${{ inputs.system }}
       run: |
+        : Flake build script
         echo "::group::Determining arguments for 'nix build'"
         build_args="$(
           jq -rn --arg system "$SYSTEM" '
@@ -58,7 +59,10 @@ runs:
         mkdir -p .build/logs
         for drv in $drv_list; do
           name="${drv##*/}"
-          nix log "$drv" > .build/logs/"${name}.log" ||:
+          log=".build/logs/${name}.log"
+          nix log "$drv" > "$log" || {
+            [ -s "$log" ] || rm -f "$log"
+          }
         done
         echo "::endgroup::"
         exit $build_result
