@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
+  outputs = args @ {
     self,
     nixpkgs,
     flake-utils,
@@ -18,9 +18,9 @@
         inherit (pkgs) hello firefox jq;
         default = pkgs.hello;
       });
-      checks = self.lib.removeNullValues {
-        default-package = self.packages.${system}.default or null;
-      };
+      #checks = self.lib.removeNullValues {
+      #  default-package = self.packages.${system}.default or null;
+      #};
     })
     // (let
       system = flake-utils.lib.system.x86_64-linux;
@@ -38,27 +38,28 @@
           ];
         };
       };
-      lib = let
-        inherit (nixpkgs.lib) isAttrs genAttrs attrNames filterAttrs;
-        inherit (flake-utils.lib) defaultSystems;
-        ciMatrix = name: attrs:
-          if (!isAttrs attrs) || (attrs == {})
-          then null
-          else {
-            ${name} = attrNames attrs;
-          };
-        ciPackagesFor = system: removeAttrs (self.packages.${system} or {}) ["default"];
-        ciHostsFor = system:
-          filterAttrs (n: v: v.config.nixpkgs.system == system) (self.nixosConfigurations or {});
-      in {
-        removeNullValues = filterAttrs (n: v: v != null);
-        ciOutputs = genAttrs defaultSystems (system: {
-          flake = self.lib.removeNullValues {
-            checks = ciMatrix "check" (self.checks.${system} or {});
-            packages = ciMatrix "package" (ciPackagesFor system);
-            hosts = ciMatrix "host" (ciHostsFor system);
-          };
-        });
-      };
+      lib = import ./lib args;
+      #lib = let
+      #  inherit (nixpkgs.lib) isAttrs genAttrs attrNames filterAttrs;
+      #  inherit (flake-utils.lib) defaultSystems;
+      #  ciMatrix = name: attrs:
+      #    if (!isAttrs attrs) || (attrs == {})
+      #    then null
+      #    else {
+      #      ${name} = attrNames attrs;
+      #    };
+      #  ciPackagesFor = system: removeAttrs (self.packages.${system} or {}) ["default"];
+      #  ciHostsFor = system:
+      #    filterAttrs (n: v: v.config.nixpkgs.system == system) (self.nixosConfigurations or {});
+      #in {
+      #  removeNullValues = filterAttrs (n: v: v != null);
+      #  ciOutputs = genAttrs defaultSystems (system: {
+      #    flake = self.lib.removeNullValues {
+      #      checks = ciMatrix "check" (self.checks.${system} or {});
+      #      packages = ciMatrix "package" (ciPackagesFor system);
+      #      hosts = ciMatrix "host" (ciHostsFor system);
+      #    };
+      #  });
+      #};
     });
 }
