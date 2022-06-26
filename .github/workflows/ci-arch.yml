@@ -22,7 +22,7 @@ jobs:
       - env:
           ITEM: ${{ toJSON(matrix.item) }}
         run: |
-          jq 'env.ITEM | fromjson'
+          jq -n 'env.ITEM | fromjson'
 
   nur:
     runs-on: ${{ inputs.runs-on }}
@@ -64,7 +64,7 @@ jobs:
       - env:
           ITEM: ${{ toJSON(matrix.item) }}
         run: |
-          jq 'env.ITEM | fromjson'
+          jq -n 'env.ITEM | fromjson'
 
   flake-checks:
     needs:
@@ -80,4 +80,4 @@ jobs:
       - env:
           ITEM: ${{ toJSON(matrix.item) }}
         run: |
-          jq 'env.ITEM | fromjson'
+          jq -n 'env.ITEM | fromjson'
