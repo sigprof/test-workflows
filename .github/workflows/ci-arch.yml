@@ -20,8 +20,9 @@ jobs:
       matrix: ${{ fromJSON(inputs.matrix).flake.packages }}
     steps:
       - env:
-          item: ${{ toJSON(matrix.item) }}
-        run: jq 'env.item | fromjson'
+          ITEM: ${{ toJSON(matrix.item) }}
+        run: |
+          jq 'env.ITEM | fromjson'
 
   nur:
     runs-on: ${{ inputs.runs-on }}
@@ -61,8 +62,9 @@ jobs:
       matrix: ${{ fromJSON(inputs.matrix).flake.hosts }}
     steps:
       - env:
-          item: ${{ toJSON(matrix.item) }}
-        run: jq 'env.item | fromjson'
+          ITEM: ${{ toJSON(matrix.item) }}
+        run: |
+          jq 'env.ITEM | fromjson'
 
   flake-checks:
     needs:
@@ -76,5 +78,6 @@ jobs:
       matrix: ${{ fromJSON(inputs.matrix).flake.checks }}
     steps:
       - env:
-          item: ${{ toJSON(matrix.item) }}
-        run: jq 'env.item | fromjson'
+          ITEM: ${{ toJSON(matrix.item) }}
+        run: |
+          jq 'env.ITEM | fromjson'
