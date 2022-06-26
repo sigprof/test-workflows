@@ -49,7 +49,7 @@ jobs:
       - id: matrix
         name: Prepare matrix
         run: |
-          matrix="$(nix eval --json .\#lib.ciOutputs)"
+          matrix="$(nix eval --json .\#lib.ciData.matrix)"
           printf '::set-output name=matrix::%s\n' "$matrix"
  
   x86_64-linux:

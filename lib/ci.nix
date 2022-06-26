@@ -65,8 +65,9 @@ in {
         });
     in
       recursiveUpdateMany [
-        packageData
-        hostData
+        ciData
+        {matrix = packageData;}
+        {matrix = hostData;}
       ];
   };
 }
