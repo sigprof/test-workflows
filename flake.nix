@@ -14,8 +14,9 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      packages = flake-utils.lib.flattenTree {
+      packages = flake-utils.lib.filterPackages system (flake-utils.lib.flattenTree {
+        inherit (pkgs) hello firefox jq;
         default = pkgs.hello;
-      };
+      });
     });
 }
