@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake.packages }}
     steps:
-      - use: ./.github/actions/ci-build-step
+      - uses: ./.github/actions/ci-build-step
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
