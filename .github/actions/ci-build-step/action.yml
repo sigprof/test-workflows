@@ -20,7 +20,7 @@ runs:
     - name: Install Nix
       uses: cachix/install-nix-action@v17
     - name: Setup Cachix
-      uses: cachix/cachix-action@v10
+      uses: sigprof/cachix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
       with:
         name: ${{ inputs.cachix-name }}
         authToken: '${{ inputs.cachix-auth-token }}'
