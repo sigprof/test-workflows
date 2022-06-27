@@ -1,5 +1,7 @@
 {nixpkgs, ...}: let
   inherit (nixpkgs.lib.attrsets) filterAttrs;
 in {
-  removeNullsFromAttrs = filterAttrs (n: v: v != null);
+  attrsets = {
+    removeNullsFromAttrs = filterAttrs (n: v: v != null);
+  };
 }
