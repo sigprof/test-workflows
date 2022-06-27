@@ -49,7 +49,7 @@ runs:
         )"
         echo "::endgroup::"
         echo "::group::Derivation list:"
-        printf '  %s\n' "$drv_list"
+        printf '  %s\n' $drv_list
         echo "::endgroup::"
         echo "::group::Building derivations"
         build_result=0
