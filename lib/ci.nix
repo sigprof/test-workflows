@@ -26,22 +26,27 @@ in {
       isNameInGroup = name: group: any (matchName name) group;
       isNameNotExcluded = excludeList: name: !(any (matchName name) excludeList);
 
-      packageItemList = system: let
-        flakePackageNames = attrNames flake.packages.${system};
-        groups = ciData.packages.groups or [];
-        exclude = ciData.packages.exclude or [];
-        packageGroupName = name: let
+      filterAndGroupNames = names: config: let
+        groups = config.groups or [];
+        exclude = config.exclude or [];
+        getGroupForName = name: let
           index = findFirstIndex (isNameInGroup name) null groups;
         in
           if index == null
           then "1/" + name
           else "0/" + (fixedWidthNumber 8 index);
-        filteredPackageNames = filter (isNameNotExcluded exclude) flakePackageNames;
-        packagesByGroup = groupBy packageGroupName filteredPackageNames;
-        sortedGroupNames = sort builtins.lessThan (attrNames packagesByGroup);
-        makePackageItem = groupName: {packages = packagesByGroup.${groupName};};
+        filteredNames = filter (isNameNotExcluded exclude) names;
+        namesByGroup = groupBy getGroupForName filteredNames;
+        sortedGroupNames = sort builtins.lessThan (attrNames namesByGroup);
       in
-        map makePackageItem sortedGroupNames;
+        map (groupName: namesByGroup.${groupName}) sortedGroupNames;
+
+      packageItemList = system: let
+        flakePackageNames = attrNames flake.packages.${system};
+        groupedNames = filterAndGroupNames flakePackageNames (ciData.packages or {});
+        makePackageItem = packages: {inherit packages;};
+      in
+        map makePackageItem groupedNames;
 
       packageData = genAttrs (attrNames flake.packages) (system: let
         packageItems = packageItemList system;
@@ -51,12 +56,12 @@ in {
         });
 
       hostNames = attrNames flake.nixosConfigurations;
-      hostExclude = ciData.hosts.exclude or [];
-      filteredHostNames = filter (isNameNotExcluded hostExclude) hostNames;
       hostSystem = hostName: flake.nixosConfigurations.${hostName}.config.nixpkgs.system;
-      hostsBySystem = groupBy hostSystem filteredHostNames;
-      makeHostItemsForSystem = system:
-        map (hostName: {hosts = [hostName];}) hostsBySystem.${system};
+      hostsBySystem = groupBy hostSystem hostNames;
+      makeHostItemsForSystem = system: let
+        groupedHosts = filterAndGroupNames hostsBySystem.${system} (ciData.hosts or {});
+      in
+        map (hosts: {inherit hosts;}) groupedHosts;
       hostData = genAttrs (attrNames hostsBySystem) (system: let
         hostItems = makeHostItemsForSystem system;
       in

@@ -8,5 +8,10 @@ in {
       ];
       exclude = ["default"];
     };
+    hosts = {
+      groups = [
+        ["example/minimal" "example/minimal2"]
+      ];
+    };
   };
 }
