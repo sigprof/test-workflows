@@ -57,13 +57,11 @@ runs:
         echo "::endgroup::"
         echo "::group::Saving build logs"
         mkdir -p .build/logs
-        for drv in $drv_list; do
-          name="${drv##*/}"
-          log=".build/logs/${name}.log"
-          nix log "$drv" > "$log" || {
-            [ -s "$log" ] || rm -f "$log"
-          }
-        done
+        find /nix/var/log/nix/drvs -type f -printf '%P\n' |
+          while read log_src; do
+            log_dst="${log_src//\//}"
+            cp -v /nix/var/log/nix/drvs/"$log_src" .build/logs/"$log_dst" ||:
+          done
         echo "::endgroup::"
         exit $build_result
     - name: Upload build logs
