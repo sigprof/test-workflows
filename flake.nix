@@ -18,6 +18,9 @@
         inherit (pkgs) hello firefox jq;
         default = pkgs.hello;
       });
+      checks = self.lib.attrsets.removeNullsFromAttrs {
+        default-package = self.packages.${system}.default or null;
+      };
     })
     // (let
       system = flake-utils.lib.system.x86_64-linux;
