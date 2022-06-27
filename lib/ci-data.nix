@@ -10,7 +10,7 @@ in {
     };
     hosts = {
       groups = [
-        ["regex:example/.*"]
+        ["example/.*"]
       ];
     };
   };

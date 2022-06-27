@@ -19,10 +19,7 @@ in {
       mapAttrs' (n: v: nameValuePair ("package/" + n) v) packages;
 
     makeCiData = flake: ciData: let
-      matchName = name: pattern:
-        if hasPrefix "regex:" pattern
-        then (match (removePrefix "regex:" pattern) name) != null
-        else name == pattern;
+      matchName = name: pattern: (match pattern name) != null;
       isNameInGroup = name: group: any (matchName name) group;
       isNameNotExcluded = excludeList: name: !(any (matchName name) excludeList);
 
