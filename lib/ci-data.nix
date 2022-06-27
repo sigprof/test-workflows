@@ -10,7 +10,7 @@ in {
     };
     hosts = {
       groups = [
-        ["example/minimal" "example/minimal2"]
+        ["regex:example/.*"]
       ];
     };
   };
