@@ -41,19 +41,18 @@ in {
       in
         map (groupName: namesByGroup.${groupName}) sortedGroupNames;
 
-      packageItemList = system: let
-        flakePackageNames = attrNames flake.packages.${system};
-        groupedNames = filterAndGroupNames flakePackageNames (ciData.packages or {});
-        makePackageItem = packages: {inherit packages;};
-      in
-        map makePackageItem groupedNames;
+      matrixForPerSystemOutput = outputName:
+        genAttrs (attrNames flake.${outputName}) (system: let
+          names = attrNames flake.${outputName}.${system};
+          groupedNames = filterAndGroupNames names (ciData.${outputName} or {});
+          items = map (list: {${outputName} = list;}) groupedNames;
+        in
+          optionalAttrs (items != []) {
+            flake.${outputName}.item = items;
+          });
 
-      packageData = genAttrs (attrNames flake.packages) (system: let
-        packageItems = packageItemList system;
-      in
-        optionalAttrs (packageItems != []) {
-          flake.packages.item = packageItems;
-        });
+      packageData = matrixForPerSystemOutput "packages";
+      checkData = matrixForPerSystemOutput "checks";
 
       hostNames = attrNames flake.nixosConfigurations;
       hostSystem = hostName: flake.nixosConfigurations.${hostName}.config.nixpkgs.system;
@@ -72,6 +71,7 @@ in {
       recursiveUpdateMany [
         ciData
         {matrix = packageData;}
+        {matrix = checkData;}
         {matrix = hostData;}
       ];
   };
