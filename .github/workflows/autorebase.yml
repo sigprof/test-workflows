@@ -29,11 +29,6 @@ jobs:
         )
       }}
     steps:
-      - name: Debug
-        env:
-          context_github: ${{ toJSON(github) }}
-        run: true
-
       - id: token
         name: Generate a GitHub token
         uses: tibdex/github-app-token@v1.5.2
