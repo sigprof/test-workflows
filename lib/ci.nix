@@ -32,7 +32,7 @@ in {
       in
         map (groupName: namesByGroup.${groupName}) sortedGroupNames;
 
-      matrixForPerSystemOutput = outputAttrs: outputName:
+      matrixForPerSystemAttrs = outputAttrs: outputName:
         genAttrs (attrNames outputAttrs) (system: let
           names = attrNames outputAttrs.${system};
           groupedNames = filterAndGroupNames names (ciData.${outputName} or {});
@@ -49,11 +49,11 @@ in {
         ${value.config.nixpkgs.system} = {${name} = value;};
       };
       hostEntryList = mapAttrsToList addSystemToHost (flake.nixosConfigurations or {});
-      hostAttrsBySystem = recursiveUpdateMany hostEntryList;
+      perSystemHosts = recursiveUpdateMany hostEntryList;
 
-      packageData = matrixForPerSystemOutput (flake.packages or {}) "packages";
-      checkData = matrixForPerSystemOutput (flake.checks or {}) "checks";
-      hostData = matrixForPerSystemOutput hostAttrsBySystem "hosts";
+      packageData = matrixForPerSystemAttrs (flake.packages or {}) "packages";
+      checkData = matrixForPerSystemAttrs (flake.checks or {}) "checks";
+      hostData = matrixForPerSystemAttrs perSystemHosts "hosts";
     in
       recursiveUpdateMany [
         ciData
