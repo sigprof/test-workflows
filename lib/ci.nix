@@ -75,7 +75,7 @@
   matrixForPerSystemAttrs = ciData: outputAttrs: outputName:
     genAttrs (attrNames outputAttrs) (system: let
       names = attrNames outputAttrs.${system};
-      groupedNames = filterAndGroupNames names (ciData.${outputName} or {});
+      groupedNames = filterAndGroupNames names (ciData.config.${outputName} or {});
       items = map (list: {${outputName} = list;}) groupedNames;
     in
       optionalAttrs (items != []) {
