@@ -73,7 +73,7 @@ runs:
           while read log_src; do
             log_dst="${log_src//\//}"
             printf '%s\n' "$log_dst"
-            cp -v /nix/var/log/nix/drvs/"$log_src" .build/logs/"$log_dst" || touch .build/logs_fail
+            cp /nix/var/log/nix/drvs/"$log_src" .build/logs/"$log_dst" || touch .build/logs_fail
           done
         echo "::endgroup::"
         if [ -f .build/logs_fail ]; then
