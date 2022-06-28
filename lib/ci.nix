@@ -42,14 +42,17 @@ in {
             flake.${outputName}.item = items;
           });
 
-      # Unfortunately, `nixosConfigurations` is not split by system name like
-      # `packages` and `checks`.  Convert it to a similar form, so that the
-      # same code could be used for the `hosts` CI items.
-      addSystemToHost = name: value: {
-        ${value.config.nixpkgs.system} = {${name} = value;};
-      };
-      hostEntryList = mapAttrsToList addSystemToHost (flake.nixosConfigurations or {});
-      hosts = recursiveUpdateMany hostEntryList;
+      # `nixosConfigurations` is a flat attribute set; convert it to a per
+      # system attribute set `hosts` similar to `packages` or `checks`, so that
+      # the same functions could be used to process it.
+      hosts = let
+        addSystem = name: value: {
+          ${value.config.nixpkgs.system} = {
+            ${name} = value;
+          };
+        };
+      in
+        recursiveUpdateMany (mapAttrsToList addSystem (flake.nixosConfigurations or {}));
     in
       recursiveUpdateMany [
         ciData
