@@ -1,6 +1,4 @@
-{self, ...}: let
-  x = 1;
-in {
+{self, ...}: {
   ciData = self.lib.ci.makeCiData self {
     config = {
       packages = {
