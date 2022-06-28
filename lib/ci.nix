@@ -4,10 +4,9 @@
   flake-utils,
   ...
 }: let
-  inherit (builtins) match foldl' filter;
+  inherit (builtins) match filter;
   inherit (nixpkgs.lib) any genAttrs attrNames optionalAttrs;
   inherit (nixpkgs.lib) fixedWidthNumber groupBy sort mapAttrsToList;
-  inherit (flake-utils.lib) defaultSystems;
   inherit (self.lib.attrsets) recursiveUpdateMany;
   inherit (self.lib.lists) findFirstIndex;
 
