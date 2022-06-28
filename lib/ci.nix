@@ -49,17 +49,13 @@ in {
         ${value.config.nixpkgs.system} = {${name} = value;};
       };
       hostEntryList = mapAttrsToList addSystemToHost (flake.nixosConfigurations or {});
-      perSystemHosts = recursiveUpdateMany hostEntryList;
-
-      packageData = matrixForPerSystemAttrs (flake.packages or {}) "packages";
-      checkData = matrixForPerSystemAttrs (flake.checks or {}) "checks";
-      hostData = matrixForPerSystemAttrs perSystemHosts "hosts";
+      hosts = recursiveUpdateMany hostEntryList;
     in
       recursiveUpdateMany [
         ciData
-        {matrix = packageData;}
-        {matrix = checkData;}
-        {matrix = hostData;}
+        {matrix = matrixForPerSystemAttrs (flake.packages or {}) "packages";}
+        {matrix = matrixForPerSystemAttrs (flake.checks or {}) "checks";}
+        {matrix = matrixForPerSystemAttrs hosts "hosts";}
       ];
   };
 }
