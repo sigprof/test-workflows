@@ -17,6 +17,30 @@ in {
       isNameInGroup = name: group: any (matchName name) group;
       isNameNotExcluded = excludeList: name: !(any (matchName name) excludeList);
 
+      # Convert a list of names (strings) to a list of groups, where each group
+      # is a list of names.
+      #
+      # Arguments:
+      #   - `names` - list of names (strings) to process;
+      #   - `config` - attribute set specifying the configuration.
+      #
+      # `config` may optionally have the following attributes:
+      #
+      #   - `exclude` - a list of regular expressions (strings).  If an input
+      #     name matches any of these regular expressions, it is omitted from
+      #     the result.
+      #
+      #   - `groups` - a list of group definitions, where each group definition
+      #     is a list of regular expressions (strings).  If an input name
+      #     matches any regular expression for a group, that name is placed
+      #     into the corresponding group; if a name happens to match multiple
+      #     groups, the first matching group is chosen.  If an input name does
+      #     not match any groups, it is placed into a separate group by itself.
+      #
+      # Groups in the returned list are ordered according to the order of
+      # corresponding definitions in `config.groups`; groups for unmatched
+      # names are placed after all configured groups and sorted by the name.
+      #
       filterAndGroupNames = names: config: let
         groups = config.groups or [];
         exclude = config.exclude or [];
@@ -32,6 +56,23 @@ in {
       in
         map (groupName: namesByGroup.${groupName}) sortedGroupNames;
 
+      # Generate a job matrix for a per system flake output attribute.
+      #
+      # Arguments:
+      #   - `outputAttrs` - the per system attribute set of items to include in
+      #     the job matrix;
+      #   - `outputName` - the name of the attribute (used to get the config
+      #     from `ciData` and to name the resulting matrix).
+      #
+      # Returns an attribute set structured like:
+      #
+      #     {
+      #       ${system}.flake.${outputName}.item = [
+      #         { ${outputName} = [ "name1" "name2" ]; }
+      #         { ${outputName} = [ "name3 ]; }
+      #       ];
+      #     }
+      #
       matrixForPerSystemAttrs = outputAttrs: outputName:
         genAttrs (attrNames outputAttrs) (system: let
           names = attrNames outputAttrs.${system};
