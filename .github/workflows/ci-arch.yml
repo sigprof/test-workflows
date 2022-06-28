@@ -13,7 +13,7 @@ on:
         type: string
 
 jobs:
-  flake:
+  pkgs:
     runs-on: ${{ inputs.runs-on }}
     if: fromJSON(inputs.matrix).flake.packages.item[0]
     strategy:
@@ -42,11 +42,11 @@ jobs:
 
   nur-main:
     needs:
-      - flake
+      - pkgs
     runs-on: ${{ inputs.runs-on }}
     if: >
       always() &&
-      (needs.flake.result == 'success' || needs.flake.result == 'skipped') &&
+      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
       fromJSON(inputs.matrix).nur-main.check[0] &&
       fromJSON(inputs.matrix).nur-main.channel[0]
     strategy:
@@ -55,13 +55,13 @@ jobs:
       - run: |
           echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
 
-  flake-hosts:
+  hosts:
     needs:
-      - flake
+      - pkgs
     runs-on: ${{ inputs.runs-on }}
     if: >
       always() &&
-      (needs.flake.result == 'success' || needs.flake.result == 'skipped') &&
+      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
       fromJSON(inputs.matrix).flake.hosts.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake.hosts }}
@@ -76,13 +76,13 @@ jobs:
           cachix-name: sigprof
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-  flake-checks:
+  checks:
     needs:
-      - flake
+      - pkgs
     runs-on: ${{ inputs.runs-on }}
     if: >
       always() &&
-      (needs.flake.result == 'success' || needs.flake.result == 'skipped') &&
+      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
       fromJSON(inputs.matrix).flake.checks.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).flake.checks }}
