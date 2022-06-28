@@ -12,12 +12,6 @@
   inherit (self.lib.lists) findFirstIndex;
 in {
   ci = {
-    makePackageChecks = flake: system: let
-      inherit (nixpkgs.lib) mapAttrs' nameValuePair;
-      packages = flake.packages.${system} or {};
-    in
-      mapAttrs' (n: v: nameValuePair ("package/" + n) v) packages;
-
     makeCiData = flake: ciData: let
       matchName = name: pattern: (match pattern name) != null;
       isNameInGroup = name: group: any (matchName name) group;
