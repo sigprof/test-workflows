@@ -4,9 +4,8 @@
   flake-utils,
   ...
 }: let
-  inherit (builtins) match filter;
-  inherit (nixpkgs.lib) any genAttrs attrNames optionalAttrs;
-  inherit (nixpkgs.lib) fixedWidthNumber groupBy sort mapAttrsToList;
+  inherit (builtins) filter match;
+  inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy mapAttrsToList optionalAttrs sort;
   inherit (self.lib.attrsets) recursiveUpdateMany;
   inherit (self.lib.lists) findFirstIndex;
 
