@@ -81,26 +81,30 @@
       optionalAttrs (items != []) {
         flake.${outputName}.item = items;
       });
+
+  # Generate a per system `hosts` attribute set from a flake.
+  #
+  # The standard `nixosConfigurations` attribute set in a flake is flat, unlike
+  # per system attribute sets like `packages` or `checks`. Produce a per system
+  # attribute set containing the same configurations, so that functions that
+  # can process a per system attribute set could be used with it.
+  #
+  flakeHosts = flake: let
+    addSystem = name: value: {
+      ${value.config.nixpkgs.system} = {
+        ${name} = value;
+      };
+    };
+  in
+    recursiveUpdateMany (mapAttrsToList addSystem (flake.nixosConfigurations or {}));
 in {
   ci = {
-    makeCiData = flake: ciData: let
-      # `nixosConfigurations` is a flat attribute set; convert it to a per
-      # system attribute set `hosts` similar to `packages` or `checks`, so that
-      # the same functions could be used to process it.
-      hosts = let
-        addSystem = name: value: {
-          ${value.config.nixpkgs.system} = {
-            ${name} = value;
-          };
-        };
-      in
-        recursiveUpdateMany (mapAttrsToList addSystem (flake.nixosConfigurations or {}));
-    in
+    makeCiData = flake: ciData:
       recursiveUpdateMany [
         ciData
         {matrix = matrixForPerSystemAttrs ciData (flake.packages or {}) "packages";}
         {matrix = matrixForPerSystemAttrs ciData (flake.checks or {}) "checks";}
-        {matrix = matrixForPerSystemAttrs ciData hosts "hosts";}
+        {matrix = matrixForPerSystemAttrs ciData (flakeHosts flake) "hosts";}
       ];
   };
 }
