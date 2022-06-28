@@ -18,8 +18,8 @@
         inherit (pkgs) hello firefox jq;
         default = pkgs.hello;
       });
-      checks = self.lib.attrsets.removeNullsFromAttrs {
-        default-package = self.packages.${system}.default or null;
+      checks = nixpkgs.lib.optionalAttrs (self?packages.${system}.default) {
+        default-package = self.packages.${system}.default;
       };
     })
     // (let
