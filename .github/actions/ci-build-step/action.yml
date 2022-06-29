@@ -8,6 +8,18 @@ inputs:
   system:
     required: true
     description: Nix system name
+  nix-install-url:
+    required: false
+    description: 'Installation URL that will contain a script to install Nix.'
+  nix-install-options:
+    required: false
+    description: 'Additional installer flags passed to the Nix installer script.'
+  nix-path:
+    required: false
+    description: 'Set NIX_PATH environment variable.'
+  nix-extra-config:
+    required: false
+    description: 'gets appended to `/etc/nix/nix.conf` if passed.'
   cachix-name:
     required: false
     description: 'Name of a Cachix cache to push and pull/substitute'
@@ -44,6 +56,11 @@ runs:
   steps:
     - name: Install Nix
       uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
+      with:
+        install_url: ${{ inputs.nix-install-url }}
+        install_options: ${{ inputs.nix-install-options }}
+        nix_path: ${{ inputs.nix-path }}
+        extra_nix_config: ${{ inputs.nix-extra-config }}
     - name: Setup Cachix
       uses: cachix/cachix-action@v10
       if: inputs.cachix-name
