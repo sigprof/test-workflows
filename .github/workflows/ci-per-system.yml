@@ -26,8 +26,8 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          #cachix-name: sigprof
-          #cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   nur:
     runs-on: ${{ inputs.runs-on }}
@@ -73,8 +73,8 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          #cachix-name: sigprof
-          #cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   checks:
     needs:
@@ -94,5 +94,5 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          #cachix-name: sigprof
-          #cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
