@@ -1,6 +1,9 @@
-name: ci-build-step
-description: CI Build Step
-author: Sergey Vlasov
+name: 'Build Nix derivations'
+description: >
+  Install Nix, set up binary caching using Cachix, then build Nix derivations
+  according to the specification in JSON format.  After the build finishes,
+  save any build logs produced by Nix in an artifact.
+
 inputs:
   item:
     required: true
