@@ -10,10 +10,35 @@ inputs:
     description: Nix system name
   cachix-name:
     required: false
-    description: Cachix cache name
+    description: 'Name of a Cachix cache to push and pull/substitute'
+  cachix-extra-pull-names:
+    required: false
+    description: 'Comma-separated list of names for extra Cachix caches to pull/substitute'
   cachix-auth-token:
     required: false
-    description: Cachix auth token
+    description: 'Authentication token for Cachix, needed only for private cache access'
+  cachix-signing-key:
+    required: false
+    description: 'Signing key secret retrieved after creating binary cache on https://cachix.org'
+  cachix-skip-push:
+    required: false
+    description: 'Set to true to disable pushing build results to the cache'
+  #cachix-paths-to-push:
+  #  required: false
+  #  description: 'Whitespace-separated list of paths to push. Leave empty to push every build result.'
+  cachix-push-filter:
+    required: false
+    description: >
+      Regular expression to exclude derivations for the cache push, for example
+      "(-source$|nixpkgs\.tar\.gz$)".
+      Warning: this filter does not guarantee it will not get pushed in case
+      the path is part of the closure of something that will get pushed.
+  #cachix-args:
+  #  required: false
+  #  description: 'Extra command-line arguments to pass to cachix. If empty, defaults to -j8'
+  cachix-install-command:
+    required: false
+    description: 'Override the default cachix installation method'
 runs:
   using: composite
   steps:
@@ -21,9 +46,17 @@ runs:
       uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
     - name: Setup Cachix
       uses: cachix/cachix-action@v10
+      if: inputs.cachix-name
       with:
         name: ${{ inputs.cachix-name }}
-        authToken: '${{ inputs.cachix-auth-token }}'
+        extraPullNames: ${{ inputs.cachix-extra-pull-names }}
+        authToken: ${{ inputs.cachix-auth-token }}
+        signingKey: ${{ inputs.cachix-signing-key }}
+        skipPush: ${{ inputs.cachix-skip-push }}
+        #pathsToPush: ${{ inputs.cachix-paths-to-push }}
+        pushFilter: ${{ inputs.cachix-push-filter }}
+        #cachixArgs: ${{ inputs.cachix-args }}
+        installCommand: ${{ inputs.cachix-install-command }}
     - name: Build
       shell: bash
       env:
