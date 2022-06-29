@@ -5,12 +5,21 @@ on:
       system:
         required: true
         type: string
+        description: >
+          System name in the format used by Nix (e.g., `x86_64-linux`).
       runs-on:
         required: true
         type: string
+        description: >
+          GitHub machine type to be used for the build (e.g., `ubuntu-latest`).
+          Needs to be compatible with the specified value of `system`.
       matrix:
         required: true
         type: string
+        description: >
+          The description of Nix derivations to be built in the JSON format.
+          Should contain only derivations for the system type specified in
+          `system` which are buildable on a machine specified in `runs-on`.
 
 jobs:
   pkgs:
