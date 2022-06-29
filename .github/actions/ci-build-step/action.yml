@@ -8,6 +8,8 @@ inputs:
   system:
     required: true
     description: Nix system name
+
+  # Inputs passed to `cachix/install-nix-action`.
   nix-install-url:
     required: false
     description: 'Installation URL that will contain a script to install Nix.'
@@ -20,6 +22,8 @@ inputs:
   nix-extra-config:
     required: false
     description: 'gets appended to `/etc/nix/nix.conf` if passed.'
+
+  # Inputs passed to `cachix/cachix-action`.
   cachix-name:
     required: false
     description: 'Name of a Cachix cache to push and pull/substitute'
@@ -51,6 +55,7 @@ inputs:
   cachix-install-command:
     required: false
     description: 'Override the default cachix installation method'
+
 runs:
   using: composite
   steps:
