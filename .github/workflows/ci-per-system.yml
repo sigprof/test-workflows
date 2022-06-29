@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.2
-      - name: Install Nix
-        uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
       - name: Build
         uses: ./.github/actions/ci-build-step
         with:
