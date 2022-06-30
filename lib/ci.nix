@@ -171,7 +171,7 @@
       {matrix = matrixForPerSystemAttrs ciData "flake" (flake.packages or {}) "packages";}
       {matrix = matrixForPerSystemAttrs ciData "flake" (flake.checks or {}) "checks";}
       {matrix = matrixForPerSystemAttrs ciData "flake" (flakeHosts flake) "hosts";}
-      {matrix = matrixForPerSystemAttrs ciData "nur" (flake.nurPackages or {}) "packages";}
+      {matrix = matrixForPerSystemAttrs ciData "nur" (flake.nurPackages or {}) "nurPackages";}
     ];
 in {
   ci = {

@@ -69,7 +69,7 @@ jobs:
                 NIX_PATH="nixpkgs=channel:$channel" \
                   nix eval --json -f nur.nix lib.ciData.matrix |
                   jq --arg system "$system" --arg channel "$channel" --arg job "$job" '
-                    path(.[].nur.packages.item) as $x
+                    path(.[].nur.nurPackages.item) as $x
                     | getpath($x)
                     | {
                         ($x[0]): {

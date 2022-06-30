@@ -7,6 +7,7 @@
         ];
         exclude = ["default"];
       };
+      nurPackages = self.lib.ciData.config.packages;
       hosts = {
         groups = [
           ["example/.*"]
