@@ -112,7 +112,7 @@
   #           ];
   #           exclude = [      # some packages can be excluded from CI builds
   #             "badpkg1"      # full name match
-  #             "many-bad-.*"  # extended regular expressions can be used 
+  #             "many-bad-.*"  # extended regular expressions can be used
   #           ];
   #         };
   #         checks = {         # config for the `flake.checks` job
