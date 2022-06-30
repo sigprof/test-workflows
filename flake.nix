@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = args @ {
+  outputs = inputs @ {
     self,
     nixpkgs,
     flake-utils,
@@ -14,10 +14,15 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      packages = flake-utils.lib.filterPackages system (flake-utils.lib.flattenTree {
-        inherit (pkgs) hello firefox jq;
-        default = pkgs.hello;
-      });
+      packages = flake-utils.lib.filterPackages system (flake-utils.lib.flattenTree (
+        let
+          packages = pkgs.callPackage ./pkgs {inherit inputs;};
+        in
+          packages
+          // {
+            default = packages.hello;
+          }
+      ));
       checks = nixpkgs.lib.optionalAttrs (self?packages.${system}.default) {
         default-package = self.packages.${system}.default;
       };
@@ -49,6 +54,6 @@
           ];
         };
       };
-      lib = import ./lib args;
+      lib = import ./lib inputs;
     });
 }
