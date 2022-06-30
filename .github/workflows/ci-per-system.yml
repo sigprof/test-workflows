@@ -40,14 +40,14 @@ jobs:
 
   nur:
     runs-on: ${{ inputs.runs-on }}
-    if: >
-      fromJSON(inputs.matrix).nur.check[0] &&
-      fromJSON(inputs.matrix).nur.channel[0]
+    if: fromJSON(inputs.matrix).nur.other.include[0]
     strategy:
-      matrix: ${{ fromJSON(inputs.matrix).nur }}
+      matrix: ${{ fromJSON(inputs.matrix).nur.other }}
     steps:
-      - run: |
-          echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
+      - env:
+          ITEM: ${{ toJSON(matrix.item) }}
+        run: |
+          echo "Building $(printf '%s' "$ITEM"|jq -c) on ${{ matrix.channel }}"
 
   nur-main:
     needs:
@@ -56,13 +56,14 @@ jobs:
     if: >
       always() &&
       (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
-      fromJSON(inputs.matrix).nur-main.check[0] &&
-      fromJSON(inputs.matrix).nur-main.channel[0]
+      fromJSON(inputs.matrix).nur.main.include[0]
     strategy:
-      matrix: ${{ fromJSON(inputs.matrix).nur-main }}
+      matrix: ${{ fromJSON(inputs.matrix).nur.main }}
     steps:
-      - run: |
-          echo "Building ${{ matrix.check }} on ${{ matrix.channel }}"
+      - env:
+          ITEM: ${{ toJSON(matrix.item) }}
+        run: |
+          echo "Building $(printf '%s' "$ITEM"|jq -c) on ${{ matrix.channel }}"
 
   hosts:
     needs:
