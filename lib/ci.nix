@@ -55,6 +55,10 @@
   # Arguments:
   # - `ciData` - CI configuration data which contains rules to group and
   #   exclude flake outputs;
+  # - `buildType` - `"flake"` for an normal flake build, `"nur"` for a NUR
+  #   build (in this case a flake-like structure with `nurPackages` instead of
+  #   `packages` will be passed instead of a real flake, and `nixpkgs` would be
+  #   whatever has been passed to NUR);
   # - `outputAttrs` - the per system attribute set of items to include in the
   #   job matrix;
   # - `outputName` - the name of the attribute (used to get the config from
@@ -63,20 +67,20 @@
   # Returns an attribute set structured like:
   #
   #     {
-  #       ${system}.flake.${outputName}.item = [
+  #       ${system}.${buildType}.${outputName}.item = [
   #         { ${outputName} = [ "name1" "name2" ]; }
   #         { ${outputName} = [ "name3 ]; }
   #       ];
   #     }
   #
-  matrixForPerSystemAttrs = ciData: outputAttrs: outputName:
+  matrixForPerSystemAttrs = ciData: buildType: outputAttrs: outputName:
     genAttrs (attrNames outputAttrs) (system: let
       names = attrNames outputAttrs.${system};
       groupedNames = filterAndGroupNames names (ciData.config.${outputName} or {});
       items = map (list: {${outputName} = list;}) groupedNames;
     in
       optionalAttrs (items != []) {
-        flake.${outputName}.item = items;
+        ${buildType}.${outputName}.item = items;
       });
 
   # Generate a per system `hosts` attribute set from a flake.
@@ -164,9 +168,10 @@
   makeCiData = flake: ciData:
     recursiveUpdateMany [
       ciData
-      {matrix = matrixForPerSystemAttrs ciData (flake.packages or {}) "packages";}
-      {matrix = matrixForPerSystemAttrs ciData (flake.checks or {}) "checks";}
-      {matrix = matrixForPerSystemAttrs ciData (flakeHosts flake) "hosts";}
+      {matrix = matrixForPerSystemAttrs ciData "flake" (flake.packages or {}) "packages";}
+      {matrix = matrixForPerSystemAttrs ciData "flake" (flake.checks or {}) "checks";}
+      {matrix = matrixForPerSystemAttrs ciData "flake" (flakeHosts flake) "hosts";}
+      {matrix = matrixForPerSystemAttrs ciData "nur" (flake.nurPackages or {}) "packages";}
     ];
 in {
   ci = {
