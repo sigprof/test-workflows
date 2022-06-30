@@ -44,10 +44,16 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).nur.other }}
     steps:
-      - env:
-          ITEM: ${{ toJSON(matrix.item) }}
-        run: |
-          echo "Building $(printf '%s' "$ITEM"|jq -c) on ${{ matrix.channel }}"
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+      - name: Build
+        uses: ./.github/actions/nix-build
+        with:
+          item: ${{ toJSON(matrix.item) }}
+          system: ${{ inputs.system }}
+          channel: ${{ matrix.channel }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   nur-main:
     needs:
@@ -60,10 +66,16 @@ jobs:
     strategy:
       matrix: ${{ fromJSON(inputs.matrix).nur.main }}
     steps:
-      - env:
-          ITEM: ${{ toJSON(matrix.item) }}
-        run: |
-          echo "Building $(printf '%s' "$ITEM"|jq -c) on ${{ matrix.channel }}"
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+      - name: Build
+        uses: ./.github/actions/nix-build
+        with:
+          item: ${{ toJSON(matrix.item) }}
+          system: ${{ inputs.system }}
+          channel: ${{ matrix.channel }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   hosts:
     needs:

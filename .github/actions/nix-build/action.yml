@@ -11,6 +11,9 @@ inputs:
   system:
     required: true
     description: Nix system name
+  channel:
+    required: false
+    description: 'Nixpkgs channel (used for NUR packages)'
 
   # Inputs passed to `cachix/install-nix-action`.
   nix-install-url:
@@ -87,12 +90,17 @@ runs:
       env:
         ITEM: ${{ inputs.item }}
         SYSTEM: ${{ inputs.system }}
+        CHANNEL: ${{ inputs.channel }}
       run: |
-        : Flake build script
+        : Build script
+        if [ -n "$CHANNEL" ]; then
+          export NIX_PATH="nixpkgs=channel:$CHANNEL"
+        fi
         echo "::group::Determining arguments for 'nix build'"
         build_args="$(
           jq -rn --arg system "$SYSTEM" '
             env.ITEM | fromjson |
+              (.nurPackages[] | @text "-f default.nix \(.)")?,
               (.packages[] | @text ".#packages."+$system+".\(.)")?,
               (.checks[] | @text ".#checks."+$system+".\(.)")?,
               (.hosts[] | @text ".#nixosConfigurations.\(.).config.system.build.toplevel")?
