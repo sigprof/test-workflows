@@ -22,6 +22,10 @@ defaults:
 env:
   CACHIX_NAME: sigprof
 
+  nur_systems: x86_64-linux
+  nur_channels: nixpkgs-unstable nixos-unstable nixos-22.05 nixos-21.11
+  nur_main_channel: nixos-22.05
+
   flake_only: >-
     ${{
       (!!inputs.flake_only) ||
@@ -49,7 +53,67 @@ jobs:
       - id: matrix
         name: Prepare matrix
         run: |
-          matrix="$(nix eval --json .\#lib.ciData.matrix)"
+          flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
+          echo "::group::Flake matrix:"
+          printf '%s' "$flake_matrix" | jq
+          echo "::endgroup::"
+          nur_matrix=""
+          for system in $nur_systems; do
+            for channel in $nur_channels; do
+              if [ "$channel" = "$nur_main_channel" ]; then
+                job="main"
+              else
+                job="other"
+              fi
+              nur_matrix_part="$(
+                NIX_PATH="nixpkgs=channel:$channel" \
+                  nix eval --json -f nur.nix lib.ciData.matrix |
+                  jq --arg system "$system" --arg channel "$channel" --arg job "$job" '
+                    path(.[].nur.packages.item) as $x
+                    | getpath($x)
+                    | {
+                        ($x[0]): {
+                          nur: {
+                            ($job): {
+                              include: [
+                                {
+                                  channel: $channel,
+                                  item: .[]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                  '
+              )"
+              echo "::group::NUR matrix part ($system, $channel):"
+              printf '%s' "$nur_matrix_part" | jq
+              echo "::endgroup::"
+              nur_matrix="$nur_matrix$nur_matrix_part"
+            done
+          done
+          matrix="$(
+            printf '%s' "$flake_matrix$nur_matrix" |
+              jq -c -n '
+                def mergeRecursive(a; b):
+                  a as $a | b as $b
+                  | if ($a|type) == "object" and ($b|type) == "object"
+                    then reduce ([$a, $b] | add | keys_unsorted[]) as $k (
+                      {};
+                      .[$k] = mergeRecursive($a[$k]; $b[$k])
+                    )
+                    elif ($a|type) == "array" and ($b|type) == "array"
+                    then $a + $b
+                    elif $b == null then $a
+                    else $b
+                end;
+                reduce inputs as $item ({}; mergeRecursive(.; $item))
+              '
+          )"
+          echo "::group::Final matrix:"
+          printf '%s' "$matrix" | jq
+          echo "::endgroup::"
           printf '::set-output name=matrix::%s\n' "$matrix"
  
   x86_64-linux:
