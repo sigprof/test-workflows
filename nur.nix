@@ -22,7 +22,6 @@
   # Make a flake-like structure for the current flake (only the parts that are
   # actually used by the code are filled in).
   self = {
-    NUR = true;
     inputs = {
       inherit self;
       nixpkgs = {
