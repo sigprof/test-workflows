@@ -19,6 +19,8 @@
   in
     result;
 
+  # Make a flake-like structure for the current flake (only the parts that are
+  # actually used by the code are filled in).
   self = {
     NUR = true;
     inputs = {
@@ -31,6 +33,8 @@
     };
     lib = import ./lib self.inputs;
 
+    # Use `nurPackages` instead of `packages`, so that the CI matrix generation
+    # code creates the proper job names.
     nurPackages.${system} = let
       inherit (flake-utils.lib) filterPackages flattenTree;
     in
