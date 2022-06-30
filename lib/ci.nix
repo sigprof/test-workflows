@@ -1,7 +1,6 @@
 {
   self,
   nixpkgs,
-  flake-utils,
   ...
 }: let
   inherit (builtins) filter match;
