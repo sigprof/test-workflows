@@ -119,20 +119,10 @@ runs:
         echo "::endgroup::"
         echo "::group::Building derivations"
         build_result=0
-        build_output="$(nix build --print-build-logs --json $drv_list)" || build_result=$?
+        # Use nix-build-uncached from the locked version of nixpkgs
+        nix shell --impure --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.nix-build-uncached' \
+          -c nix-build-uncached $drv_list || build_result=$?
         echo "::endgroup::"
-        if [ "$build_result" = "0" ]; then
-          echo "::group::Build results as JSON"
-          printf '%s' "$build_output" | jq
-          echo "::endgroup::"
-          echo "::group::Build output size"
-          outputs="$( printf '%s' "$build_output" | jq -r '.[].outputs[]' )"
-          nix path-info --size --closure-size --human-readable $outputs ||:
-          echo "::endgroup::"
-          echo "::group::Build output info as JSON"
-          nix path-info --size --closure-size --json $outputs | jq ||:
-          echo "::endgroup::"
-        fi
         echo "::group::Saving build logs"
         mkdir -p .build/logs
         find /nix/var/log/nix/drvs -type f -printf '%P\n' |
