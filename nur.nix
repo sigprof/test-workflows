@@ -18,7 +18,6 @@
     # code creates the proper job names.
     nurPackages.${system} = pkgs.callPackage ./pkgs {
       inherit (self) inputs;
-      inherit pkgs;
     };
   };
 in
