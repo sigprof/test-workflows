@@ -12,19 +12,17 @@
     flake-utils,
   }:
     flake-utils.lib.eachDefaultSystem (system: let
+      inherit (flake-utils.lib) filterPackages flattenTree;
       pkgs = nixpkgs.legacyPackages.${system};
+      legacyPackages = pkgs.callPackage ./pkgs {inherit inputs;};
+      packages = filterPackages system ((flattenTree legacyPackages)
+        // {
+          default = legacyPackages.hello;
+        });
     in {
-      packages = flake-utils.lib.filterPackages system (flake-utils.lib.flattenTree (
-        let
-          packages = pkgs.callPackage ./pkgs {inherit inputs;};
-        in
-          packages
-          // {
-            default = packages.hello;
-          }
-      ));
-      checks = nixpkgs.lib.optionalAttrs (self?packages.${system}.default) {
-        default-package = self.packages.${system}.default;
+      inherit packages legacyPackages;
+      checks = nixpkgs.lib.optionalAttrs (packages ? default) {
+        default-package = packages.default;
       };
     })
     // (let
