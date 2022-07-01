@@ -100,7 +100,7 @@ runs:
         build_args="$(
           jq -rn --arg system "$SYSTEM" '
             env.ITEM | fromjson |
-              (.nurPackages[] | @text "-f default.nix \(.)")?,
+              ([.nurPackages[]]? | ["-f default.nix"] + . | .[])?,
               (.packages[] | @text ".#packages."+$system+".\(.)")?,
               (.checks[] | @text ".#checks."+$system+".\(.)")?,
               (.hosts[] | @text ".#nixosConfigurations.\(.).config.system.build.toplevel")?
