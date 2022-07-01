@@ -4,8 +4,10 @@
   ...
 }: let
   inherit (builtins) filter match;
+  inherit (nixpkgs.lib.attrsets) isDerivation;
+  inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier;
   inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy mapAttrsToList optionalAttrs sort;
-  inherit (self.lib.attrsets) recursiveUpdateMany;
+  inherit (self.lib.attrsets) flattenAttrs recursiveUpdateMany;
   inherit (self.lib.lists) findFirstIndex;
 
   matchName = name: pattern: (match pattern name) != null;
@@ -99,6 +101,18 @@
   in
     recursiveUpdateMany (mapAttrsToList addSystem (flake.nixosConfigurations or {}));
 
+  # Convert the nested attribute set from `flake.nurPackages` to a flat
+  # attribute set which would be usable with `matrixForPerSystemAttrs`.
+  #
+  nurPackages = flake: let
+    packages = flake.nurPackages or {};
+    valueCond = _: value: isDerivation value;
+    recurseCond = path: value: (path == []) || (value.recurseForDerivations or false);
+    pathToName = path: concatMapStringsSep "." escapeNixIdentifier path;
+  in
+    genAttrs (attrNames packages) (system:
+      flattenAttrs valueCond recurseCond pathToName packages.${system});
+
   # Generate CI job matrix data for the flake.
   #
   # Arguments:
@@ -171,7 +185,7 @@
       {matrix = matrixForPerSystemAttrs ciData "flake" (flake.packages or {}) "packages";}
       {matrix = matrixForPerSystemAttrs ciData "flake" (flake.checks or {}) "checks";}
       {matrix = matrixForPerSystemAttrs ciData "flake" (flakeHosts flake) "hosts";}
-      {matrix = matrixForPerSystemAttrs ciData "nur" (flake.nurPackages or {}) "nurPackages";}
+      {matrix = matrixForPerSystemAttrs ciData "nur" (nurPackages flake) "nurPackages";}
     ];
 in {
   ci = {

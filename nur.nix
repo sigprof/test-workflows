@@ -19,12 +19,10 @@
     nurPackages.${system} = let
       inherit (self.lib.packages) filterPackages flattenTree;
     in
-      filterPackages system (flattenTree (
-        pkgs.callPackage ./pkgs {
-          inherit (self) inputs;
-          inherit pkgs;
-        }
-      ));
+      pkgs.callPackage ./pkgs {
+        inherit (self) inputs;
+        inherit pkgs;
+      };
   };
 in
   self

@@ -39,6 +39,7 @@ in
       attrsets = {inherit recursiveUpdateMany;};
       chunks = {inherit importChunk importChunks mergeChunks;};
     }
+    ./attrsets.nix
     ./ci.nix
     ./ci-data.nix
     ./lists.nix

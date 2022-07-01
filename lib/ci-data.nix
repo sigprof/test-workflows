@@ -3,7 +3,7 @@
     config = {
       packages = {
         groups = [
-          ["hello" "jq"]
+          ["hello" "jq" "nested[./]hello"]
         ];
         exclude = ["default"];
       };
