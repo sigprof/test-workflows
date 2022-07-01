@@ -10,6 +10,7 @@
     self,
     nixpkgs,
     flake-utils,
+    ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       inherit (flake-utils.lib) filterPackages flattenTree;
