@@ -43,5 +43,4 @@ in
     ./ci.nix
     ./ci-data.nix
     ./lists.nix
-    ./packages.nix
   ]

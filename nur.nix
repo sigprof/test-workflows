@@ -16,13 +16,10 @@
 
     # Use `nurPackages` instead of `packages`, so that the CI matrix generation
     # code creates the proper job names.
-    nurPackages.${system} = let
-      inherit (self.lib.packages) filterPackages flattenTree;
-    in
-      pkgs.callPackage ./pkgs {
-        inherit (self) inputs;
-        inherit pkgs;
-      };
+    nurPackages.${system} = pkgs.callPackage ./pkgs {
+      inherit (self) inputs;
+      inherit pkgs;
+    };
   };
 in
   self
