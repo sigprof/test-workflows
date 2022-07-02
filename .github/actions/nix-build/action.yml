@@ -92,7 +92,7 @@ runs:
         SYSTEM: ${{ inputs.system }}
         CHANNEL: ${{ inputs.channel }}
       run: |
-        : Build script
+        # Build script
 
         # Remove unrelated build logs left by the Nix installer
         sudo rm -rf /nix/var/log/nix/drvs/* ||:

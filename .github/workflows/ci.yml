@@ -56,6 +56,7 @@ jobs:
         run: nix flake check --no-build
       - name: Check NUR evaluation
         run: |
+          # Check NUR evaluation
           for channel in $nur_channels; do
             echo "::group::NUR evaluation for $channel:"
             nix-env -f . -qa \* --meta --xml \
@@ -70,6 +71,7 @@ jobs:
       - name: Prepare matrix
         id: matrix
         run: |
+          # Prepare matrix
           flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
           echo "::group::Flake matrix:"
           printf '%s' "$flake_matrix" | jq
