@@ -83,11 +83,11 @@ jobs:
               done
               # If both unstable branches are requested, `nixpkgs-unstable`
               # should be built in stage1, and `nixos-unstable` should be built
-              # in stage2 (this way any errors triggered by the newest code
+              # in stage3 (this way any errors triggered by the newest code
               # would be triggered early).
               if [ -n "$have_nixpkgs_unstable" ] && [ -n "$have_nixos_unstable" ]; then
                 job_for_nixpkgs_unstable="stage1"
-                job_for_nixos_unstable="stage2"
+                job_for_nixos_unstable="stage3"
               fi
               ;;
           esac
