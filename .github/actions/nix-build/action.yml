@@ -93,6 +93,10 @@ runs:
         CHANNEL: ${{ inputs.channel }}
       run: |
         : Build script
+
+        # Remove unrelated build logs left by the Nix installer
+        sudo rm -rf /nix/var/log/nix/drvs/* ||:
+
         if [ -n "$CHANNEL" ]; then
           export NIX_PATH="nixpkgs=channel:$CHANNEL"
         fi
