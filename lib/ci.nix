@@ -4,7 +4,7 @@
   ...
 }: let
   inherit (builtins) filter match;
-  inherit (nixpkgs.lib.attrsets) isDerivation;
+  inherit (nixpkgs.lib.attrsets) isDerivation filterAttrs mapAttrs;
   inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier;
   inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy mapAttrsToList optionalAttrs sort;
   inherit (self.lib.attrsets) flattenAttrs recursiveUpdateMany;
@@ -141,6 +141,34 @@
   in
     recursiveUpdateMany (mapAttrsToList matrixForJobClass matrixDesc);
 
+  # Apply `filterAttrs pred` to every value in `perSystemAttrs`.
+  #
+  filterPerSystemAttrs = pred: perSystemAttrs:
+    mapAttrs (system: attrs: filterAttrs pred attrs) perSystemAttrs;
+
+  # Split `flake.checks` into early and normal checks, using the configuration
+  # in `config.checks.early`.
+  #
+  # Parameters:
+  # - `flake` - the flake to process;
+  # - `config` - the CI configuration data (`lib.ciData.config`).
+  #
+  # Returns an attribute set with two entries:
+  # - `early` - attribute set which contain checks from `flake.checks` with
+  #   names that match at least one of regular expressions from the
+  #   `config.checks.early` list;
+  # - `normal` - attribute set which contains checks from `flake.checks` with
+  #   names that do not match any of the regular expressions from the
+  #   `config.checks.early` list.
+  #
+  splitChecks = flake: config: let
+    earlyGroup = config.checks.early or [];
+    checks = flake.checks or {};
+  in {
+    early = filterPerSystemAttrs (n: v: isNameInGroup n earlyGroup) checks;
+    normal = filterPerSystemAttrs (n: v: !(isNameInGroup n earlyGroup)) checks;
+  };
+
   # Generate CI job matrix data for the flake.
   #
   # Arguments:
@@ -209,6 +237,7 @@
   #
   makeCiData = flake: ciData: let
     config = ciData.config or {};
+    checks = splitChecks flake config;
   in
     recursiveUpdateMany [
       ciData
@@ -218,8 +247,13 @@
             perSystemAttrs = flake.packages or {};
             config = config.packages or {};
           };
+          flake.earlyChecks = {
+            perSystemAttrs = checks.early;
+            config = config.checks or {};
+            itemName = "checks";
+          };
           flake.checks = {
-            perSystemAttrs = flake.checks or {};
+            perSystemAttrs = checks.normal;
             config = config.checks or {};
           };
           flake.hosts = {
