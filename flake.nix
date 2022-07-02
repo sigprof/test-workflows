@@ -4,12 +4,17 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
     flake-utils.url = "github:numtide/flake-utils";
+
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit-hooks.inputs.flake-utils.follows = "flake-utils";
   };
 
   outputs = inputs @ {
     self,
     nixpkgs,
     flake-utils,
+    pre-commit-hooks,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
@@ -22,10 +27,32 @@
         });
     in {
       inherit packages legacyPackages;
-      checks = nixpkgs.lib.optionalAttrs (packages ? default) {
-        default-package = packages.default;
-      };
     })
+    // (
+      let
+        checkedSystems = with flake-utils.lib.system; [
+          x86_64-linux
+          x86_64-darwin
+          aarch64-linux
+          aarch64-darwin
+          # No `i686-linux` because `pre-commit-hooks` does not evaluate
+        ];
+      in
+        flake-utils.lib.eachSystem checkedSystems (system: {
+          checks =
+            {
+              pre-commit = pre-commit-hooks.lib.${system}.run {
+                src = ./.;
+                hooks = {
+                  alejandra.enable = true;
+                };
+              };
+            }
+            // nixpkgs.lib.optionalAttrs (self.packages.${system} ? default) {
+              default-package = self.packages.${system}.default;
+            };
+        })
+    )
     // (let
       system = flake-utils.lib.system.x86_64-linux;
     in {
