@@ -42,16 +42,20 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v2.4.2
-      - uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
-      - uses: cachix/cachix-action@v10
+      - name: Checkout
+        uses: actions/checkout@v2.4.2
+      - name: Install Nix
+        uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v10
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           extraPullNames: "pre-commit-hooks"
-      - run: nix flake check --no-build
-      - id: matrix
-        name: Prepare matrix
+      - name: Check flake evaluation
+        run: nix flake check --no-build
+      - name: Prepare matrix
+        id: matrix
         run: |
           flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
           echo "::group::Flake matrix:"
