@@ -55,34 +55,33 @@
   # Generate a job matrix for a per system flake output attribute.
   #
   # Arguments:
-  # - `ciData` - CI configuration data which contains rules to group and
-  #   exclude flake outputs;
-  # - `buildType` - `"flake"` for an normal flake build, `"nur"` for a NUR
+  # - `jobClass` - `"flake"` for an normal flake build, `"nur"` for a NUR
   #   build (in this case a flake-like structure with `nurPackages` instead of
   #   `packages` will be passed instead of a real flake, and `nixpkgs` would be
   #   whatever has been passed to NUR);
+  # - `jobName` - the name of the job (used to name the resulting matrix);
+  # - `config` - CI configuration data for the job which contains rules to
+  #   group and exclude items;
   # - `outputAttrs` - the per system attribute set of items to include in the
-  #   job matrix;
-  # - `outputName` - the name of the attribute (used to get the config from
-  #   `ciData` and to name the resulting matrix).
+  #   job matrix.
   #
   # Returns an attribute set structured like:
   #
   #     {
-  #       ${system}.${buildType}.${outputName}.item = [
-  #         { ${outputName} = [ "name1" "name2" ]; }
-  #         { ${outputName} = [ "name3 ]; }
+  #       ${system}.${jobClass}.${jobName}.item = [
+  #         { ${jobName} = [ "name1" "name2" ]; }
+  #         { ${jobName} = [ "name3 ]; }
   #       ];
   #     }
   #
-  matrixForPerSystemAttrs = ciData: buildType: outputAttrs: outputName:
+  matrixForPerSystemAttrs = jobClass: jobName: config: outputAttrs:
     genAttrs (attrNames outputAttrs) (system: let
       names = attrNames outputAttrs.${system};
-      groupedNames = filterAndGroupNames names (ciData.config.${outputName} or {});
-      items = map (list: {${outputName} = list;}) groupedNames;
+      groupedNames = filterAndGroupNames names config;
+      items = map (list: {${jobName} = list;}) groupedNames;
     in
       optionalAttrs (items != []) {
-        ${buildType}.${outputName}.item = items;
+        ${jobClass}.${jobName}.item = items;
       });
 
   # Generate a per system `hosts` attribute set from a flake.
@@ -112,6 +111,31 @@
   in
     genAttrs (attrNames packages) (system:
       flattenAttrs valueCond recurseCond pathToName packages.${system});
+
+  # Generate the set of job matrices for the flake.
+  #
+  # Parameters:
+  # - `matrixDesc` - the description of job matrices in the following format:
+  #     {
+  #       ${jobClass} = {
+  #         ${jobName} = {
+  #           config = {...};
+  #           perSystemAttrs = {...};
+  #         };
+  #       };
+  #     }
+  #   where `config` is the CI configuration data for the job, and
+  #   `perSystemAttrs` is a per system attribute set similar to `self.packages`
+  #   or `self.checks` in a flake.
+  #
+  makeMatrix = matrixDesc: let
+    matrixForJobClass = jobClass: jobClassDesc: let
+      matrixForJob = jobName: jobDesc:
+        matrixForPerSystemAttrs jobClass jobName jobDesc.config jobDesc.perSystemAttrs;
+    in
+      recursiveUpdateMany (mapAttrsToList matrixForJob jobClassDesc);
+  in
+    recursiveUpdateMany (mapAttrsToList matrixForJobClass matrixDesc);
 
   # Generate CI job matrix data for the flake.
   #
@@ -179,13 +203,31 @@
   # `system` values supported by Nix, then the CI jobs can use the subset of
   # these values which are supported by CI.
   #
-  makeCiData = flake: ciData:
+  makeCiData = flake: ciData: let
+    config = ciData.config or {};
+  in
     recursiveUpdateMany [
       ciData
-      {matrix = matrixForPerSystemAttrs ciData "flake" (flake.packages or {}) "packages";}
-      {matrix = matrixForPerSystemAttrs ciData "flake" (flake.checks or {}) "checks";}
-      {matrix = matrixForPerSystemAttrs ciData "flake" (flakeHosts flake) "hosts";}
-      {matrix = matrixForPerSystemAttrs ciData "nur" (nurPackages flake) "nurPackages";}
+      {
+        matrix = makeMatrix {
+          flake.packages = {
+            perSystemAttrs = flake.packages or {};
+            config = config.packages or {};
+          };
+          flake.checks = {
+            perSystemAttrs = flake.checks or {};
+            config = config.checks or {};
+          };
+          flake.hosts = {
+            perSystemAttrs = flakeHosts flake;
+            config = config.hosts or {};
+          };
+          nur.nurPackages = {
+            perSystemAttrs = nurPackages flake;
+            config = config.nurPackages or config.packages or {};
+          };
+        };
+      }
     ];
 in {
   ci = {
