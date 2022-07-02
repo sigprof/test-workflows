@@ -60,6 +60,8 @@
   #   `packages` will be passed instead of a real flake, and `nixpkgs` would be
   #   whatever has been passed to NUR);
   # - `jobName` - the name of the job (used to name the resulting matrix);
+  # - `itemName` - the name of the item inside the matrix (determines the build
+  #   method in the CI job);
   # - `config` - CI configuration data for the job which contains rules to
   #   group and exclude items;
   # - `outputAttrs` - the per system attribute set of items to include in the
@@ -69,16 +71,16 @@
   #
   #     {
   #       ${system}.${jobClass}.${jobName}.item = [
-  #         { ${jobName} = [ "name1" "name2" ]; }
-  #         { ${jobName} = [ "name3 ]; }
+  #         { ${itemName} = [ "name1" "name2" ]; }
+  #         { ${itemName} = [ "name3 ]; }
   #       ];
   #     }
   #
-  matrixForPerSystemAttrs = jobClass: jobName: config: outputAttrs:
+  matrixForPerSystemAttrs = jobClass: jobName: itemName: config: outputAttrs:
     genAttrs (attrNames outputAttrs) (system: let
       names = attrNames outputAttrs.${system};
       groupedNames = filterAndGroupNames names config;
-      items = map (list: {${jobName} = list;}) groupedNames;
+      items = map (list: {${itemName} = list;}) groupedNames;
     in
       optionalAttrs (items != []) {
         ${jobClass}.${jobName}.item = items;
@@ -130,8 +132,10 @@
   #
   makeMatrix = matrixDesc: let
     matrixForJobClass = jobClass: jobClassDesc: let
-      matrixForJob = jobName: jobDesc:
-        matrixForPerSystemAttrs jobClass jobName jobDesc.config jobDesc.perSystemAttrs;
+      matrixForJob = jobName: jobDesc: let
+        itemName = jobDesc.itemName or jobName;
+      in
+        matrixForPerSystemAttrs jobClass jobName itemName jobDesc.config jobDesc.perSystemAttrs;
     in
       recursiveUpdateMany (mapAttrsToList matrixForJob jobClassDesc);
   in
