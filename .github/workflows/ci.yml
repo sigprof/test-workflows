@@ -58,13 +58,52 @@ jobs:
           printf '%s' "$flake_matrix" | jq
           echo "::endgroup::"
           nur_matrix=""
+          case "$nur_main_channel" in
+            (nixos-unstable|nixpkgs-unstable)
+              # If the flake follows one of the unstable channels, build NUR
+              # packages for both unstable channels after the flake (hoping
+              # that the packages would match the flake build results).
+              job_for_nixpkgs_unstable="stage2"
+              job_for_nixos_unstable="stage2"
+              ;;
+            (*)
+              # If the flake follows a stable channel, build NUR package for
+              # unstable channels independently from everything else ...
+              job_for_nixpkgs_unstable="other"
+              job_for_nixos_unstable="other"
+              # ... except when both `nixpkgs-unstable` and `nixos-unstable`
+              # are requested
+              have_nixpkgs_unstable=
+              have_nixos_unstable=
+              for channel in $nur_channels; do
+                case "$channel" in
+                  (nixpkgs-unstable) have_nixpkgs_unstable=t ;;
+                  (nixos-unstable) have_nixos_unstable=t ;;
+                esac
+              done
+              # If both unstable branches are requested, `nixpkgs-unstable`
+              # should be built in stage1, and `nixos-unstable` should be built
+              # in stage2 (this way any errors triggered by the newest code
+              # would be triggered early).
+              if [ -n "$have_nixpkgs_unstable" ] && [ -n "$have_nixos_unstable" ]; then
+                job_for_nixpkgs_unstable="stage1"
+                job_for_nixos_unstable="stage2"
+              fi
+              ;;
+          esac
           for system in $nur_systems; do
             for channel in $nur_channels; do
-              if [ "$channel" = "$nur_main_channel" ]; then
-                job="main"
-              else
-                job="other"
-              fi
+              case "$channel" in
+                (nixpkgs-unstable) job="$job_for_nixpkgs_unstable" ;;
+                (nixos-unstable) job="$job_for_nixos_unstable" ;;
+                (*)
+                  if [ "$channel" = "$nur_main_channel" ]; then
+                    job="stage2"
+                  else
+                    job="other"
+                  fi
+                  ;;
+              esac
               nur_matrix_part="$(
                 NIX_PATH="nixpkgs=channel:$channel" \
                   nix eval --json -f nur.nix lib.ciData.matrix |

@@ -55,16 +55,35 @@ jobs:
           cachix-name: sigprof
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-  nur-main:
+  nur1:
+    runs-on: ${{ inputs.runs-on }}
+    if: fromJSON(inputs.matrix).nur.stage1.include[0]
+    strategy:
+      matrix: ${{ fromJSON(inputs.matrix).nur.stage1 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.0.2
+      - name: Build
+        uses: ./.github/actions/nix-build
+        with:
+          item: ${{ toJSON(matrix.item) }}
+          system: ${{ inputs.system }}
+          channel: ${{ matrix.channel }}
+          cachix-name: sigprof
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+  nur2:
     needs:
       - pkgs
+      - nur1
     runs-on: ${{ inputs.runs-on }}
     if: >
       always() &&
       (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
-      fromJSON(inputs.matrix).nur.main.include[0]
+      (needs.nur1.result == 'success' || needs.nur1.result == 'skipped') &&
+      fromJSON(inputs.matrix).nur.stage2.include[0]
     strategy:
-      matrix: ${{ fromJSON(inputs.matrix).nur.main }}
+      matrix: ${{ fromJSON(inputs.matrix).nur.stage2 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.2
