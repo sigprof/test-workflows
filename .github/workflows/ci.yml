@@ -54,6 +54,19 @@ jobs:
           extraPullNames: "pre-commit-hooks"
       - name: Check flake evaluation
         run: nix flake check --no-build
+      - name: Check NUR evaluation
+        run: |
+          for channel in $nur_channels; do
+            echo "::group::NUR evaluation for $channel:"
+            nix-env -f . -qa \* --meta --xml \
+              --allowed-uris https://static.rust-lang.org \
+              --option restrict-eval true \
+              --option allow-import-from-derivation true \
+              --drv-path --show-trace \
+              -I nixpkgs=$(NIX_PATH="nixpkgs=channel:$channel" nix-instantiate --find-file nixpkgs) \
+              -I $PWD
+            echo "::endgroup::"
+          done
       - name: Prepare matrix
         id: matrix
         run: |
