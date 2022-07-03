@@ -1,4 +1,7 @@
-{pkgs ? import <nixpkgs> {}}: let
+{
+  system ? builtins.currentSystem,
+  pkgs ? import <nixpkgs> {inherit system;},
+}: let
   inherit (pkgs) system;
 
   # Make a flake-like structure for the current flake (only the parts that are
