@@ -97,6 +97,7 @@ jobs:
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Check NUR evaluation
+        if: env.flake_only == 'false'
         run: |
           # Check NUR evaluation
           for channel in $nur_channels; do
@@ -113,6 +114,7 @@ jobs:
 
       - name: Prepare matrix for NUR build jobs
         id: nur_matrix
+        if: env.flake_only == 'false'
         run: |
           # Prepare matrix for NUR build jobs
           nur_matrix=""
