@@ -46,16 +46,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.2
+
       - name: Install Nix
         uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
+
       - name: Setup Cachix
         uses: cachix/cachix-action@v10
         with:
           name: ${{ env.CACHIX_NAME }}
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           extraPullNames: "pre-commit-hooks"
+
       - name: Check flake evaluation
         run: nix flake check --no-build
+
       - name: Prepare matrix for flake build jobs
         id: flake_matrix
         run: |
@@ -65,6 +69,7 @@ jobs:
           printf '%s' "$flake_matrix" | jq
           echo "::endgroup::"
           printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
+
       - name: Get the list of setup checks
         id: get_setup_checks
         env:
@@ -81,6 +86,7 @@ jobs:
           printf '%s' "$setup_checks" | jq
           echo "::endgroup::"
           printf '::set-output name=setup_checks::%s\n' "$setup_checks"
+
       - name: Run setup checks
         if: ${{ steps.get_setup_checks.outputs.setup_checks }}
         uses: ./.github/actions/nix-build
@@ -89,6 +95,7 @@ jobs:
           system: ${{ env.this_system }}
           cachix-name: ${{ env.CACHIX_NAME }}
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
       - name: Check NUR evaluation
         run: |
           # Check NUR evaluation
@@ -103,6 +110,7 @@ jobs:
               -I $PWD
             echo "::endgroup::"
           done
+
       - name: Prepare matrix for NUR build jobs
         id: nur_matrix
         run: |
@@ -183,6 +191,7 @@ jobs:
             done
           done
           printf '::set-output name=nur_matrix::%s\n' "$nur_matrix"
+
       - name: Make combined matrix for all build jobs
         id: matrix
         env:
