@@ -68,14 +68,19 @@ jobs:
               -I $PWD
             echo "::endgroup::"
           done
-      - name: Prepare matrix
-        id: matrix
+      - name: Prepare matrix for flake build jobs
+        id: flake_matrix
         run: |
-          # Prepare matrix
+          # Prepare matrix for flake build jobs
           flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
           echo "::group::Flake matrix:"
           printf '%s' "$flake_matrix" | jq
           echo "::endgroup::"
+          printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
+      - name: Prepare matrix for NUR build jobs
+        id: nur_matrix
+        run: |
+          # Prepare matrix for NUR build jobs
           nur_matrix=""
           case "$nur_main_channel" in
             (nixos-unstable|nixpkgs-unstable)
@@ -126,7 +131,7 @@ jobs:
               nur_matrix_part="$(
                 NIX_PATH="nixpkgs=channel:$channel" \
                   nix eval --json -f nur.nix lib.ciData.matrix |
-                  jq --arg system "$system" --arg channel "$channel" --arg job "$job" '
+                  jq -c --arg system "$system" --arg channel "$channel" --arg job "$job" '
                     path(.[].nur.nurPackages.item) as $x
                     | getpath($x)
                     | {
@@ -151,6 +156,14 @@ jobs:
               nur_matrix="$nur_matrix$nur_matrix_part"
             done
           done
+          printf '::set-output name=nur_matrix::%s\n' "$nur_matrix"
+      - name: Make combined matrix for all build jobs
+        id: matrix
+        env:
+          flake_matrix: ${{ steps.flake_matrix.outputs.flake_matrix }}
+          nur_matrix: ${{ steps.nur_matrix.outputs.nur_matrix }}
+        run: |
+          # Make combined matrix for all build jobs
           matrix="$(
             printf '%s' "$flake_matrix$nur_matrix" |
               jq -c -n '
