@@ -236,7 +236,24 @@ jobs:
 
   finish:
     needs:
+      - setup
       - x86_64-linux
     runs-on: ubuntu-latest
+    if: always()
+    env:
+      ci_success: >-
+        ${{
+          (needs.setup.result == 'success')
+          && (needs.x86_64-linux.result == 'success')
+        }}
     steps:
-      - run: echo "Dummy finish"
+      - name: Notify on success
+        if: env.ci_success == 'true'
+        run: echo "Dummy notify on success"
+
+      - name: Notify on failure
+        if: env.ci_success == 'false'
+        run: echo "Dummy notify on failure"
+
+      - name: Report CI status
+        run: $ci_success
