@@ -231,7 +231,8 @@ jobs:
     with:
       system: x86_64-linux
       runs-on: ubuntu-latest
-      matrix: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux) }}
+      flake-jobs: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux.flake) }}
+      nur-jobs: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux.nur) }}
     secrets: inherit
 
   finish:
