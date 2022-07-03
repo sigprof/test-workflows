@@ -3,10 +3,10 @@
   nixpkgs,
   ...
 }: let
-  inherit (builtins) elem filter match;
-  inherit (nixpkgs.lib.attrsets) isDerivation filterAttrs mapAttrs;
+  inherit (builtins) elem filter listToAttrs match;
+  inherit (nixpkgs.lib.attrsets) isDerivation filterAttrs mapAttrs mapAttrsToList nameValuePair;
   inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier;
-  inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy mapAttrsToList optionalAttrs sort;
+  inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy optionalAttrs sort;
   inherit (self.lib.attrsets) flattenAttrs recursiveUpdateMany;
   inherit (self.lib.lists) findFirstIndex;
 
@@ -148,33 +148,35 @@
   in
     recursiveUpdateMany (mapAttrsToList matrixForJobClass matrixDesc);
 
-  # Apply `filterAttrs pred` to every value in `perSystemAttrs`.
-  #
-  filterPerSystemAttrs = pred: perSystemAttrs:
-    mapAttrs (system: attrs: filterAttrs pred attrs) perSystemAttrs;
-
-  # Split `flake.checks` into early and normal checks, using the configuration
-  # in `config.checks.early`.
+  # Split `flake.checks` into multiple groups of checks, using the
+  # configuration in `config.checks.setup` and `config.checks.early`.
   #
   # Parameters:
   # - `flake` - the flake to process;
   # - `config` - the CI configuration data (`lib.ciData.config`).
   #
-  # Returns an attribute set with two entries:
-  # - `early` - attribute set which contain checks from `flake.checks` with
-  #   names that match at least one of regular expressions from the
-  #   `config.checks.early` list;
-  # - `normal` - attribute set which contains checks from `flake.checks` with
-  #   names that do not match any of the regular expressions from the
-  #   `config.checks.early` list.
+  # Returns an attribute set with the following entries:
+  # - `setup` - checks that matched `config.checks.setup`;
+  # - `early` - checks that matched `config.checks.early`;
+  # - `normal` - all other checks.
   #
   splitChecks = flake: config: let
+    setupGroup = config.checks.setup or [];
     earlyGroup = config.checks.early or [];
     checks = flake.checks or {};
-  in {
-    early = filterPerSystemAttrs (n: v: isNameInGroup n earlyGroup) checks;
-    normal = filterPerSystemAttrs (n: v: !(isNameInGroup n earlyGroup)) checks;
-  };
+    getGroupName = x:
+      if isNameInGroup (x.name) setupGroup
+      then "setup"
+      else if isNameInGroup (x.name) earlyGroup
+      then "early"
+      else "normal";
+    splitChecksForOneSystem = checks:
+      mapAttrs (n: v: listToAttrs v) (groupBy getGroupName (mapAttrsToList nameValuePair checks));
+    splittedChecks = mapAttrs (n: v: splitChecksForOneSystem v) checks;
+  in
+    genAttrs ["setup" "early" "normal"] (checkType:
+      genAttrs (attrNames checks) (system:
+        splittedChecks.${system}.${checkType} or {}));
 
   # Generate CI job matrix data for the flake.
   #
@@ -253,6 +255,11 @@
           flake.packages = {
             perSystemAttrs = flake.packages or {};
             config = config.packages or {};
+          };
+          flake.setupChecks = {
+            perSystemAttrs = checks.setup;
+            config = config.checks or {};
+            itemName = "checks";
           };
           flake.earlyChecks = {
             perSystemAttrs = checks.early;

@@ -2,7 +2,7 @@
   ciData = self.lib.ci.makeCiData self {
     config = {
       checks = {
-        early = ["pre-commit"];
+        setup = ["pre-commit"];
       };
       packages = {
         groups = [
