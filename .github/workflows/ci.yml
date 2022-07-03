@@ -54,6 +54,15 @@ jobs:
           extraPullNames: "pre-commit-hooks"
       - name: Check flake evaluation
         run: nix flake check --no-build
+      - name: Prepare matrix for flake build jobs
+        id: flake_matrix
+        run: |
+          # Prepare matrix for flake build jobs
+          flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
+          echo "::group::Flake matrix:"
+          printf '%s' "$flake_matrix" | jq
+          echo "::endgroup::"
+          printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
       - name: Check NUR evaluation
         run: |
           # Check NUR evaluation
@@ -68,15 +77,6 @@ jobs:
               -I $PWD
             echo "::endgroup::"
           done
-      - name: Prepare matrix for flake build jobs
-        id: flake_matrix
-        run: |
-          # Prepare matrix for flake build jobs
-          flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
-          echo "::group::Flake matrix:"
-          printf '%s' "$flake_matrix" | jq
-          echo "::endgroup::"
-          printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
       - name: Prepare matrix for NUR build jobs
         id: nur_matrix
         run: |
