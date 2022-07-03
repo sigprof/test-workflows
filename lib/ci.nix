@@ -3,7 +3,7 @@
   nixpkgs,
   ...
 }: let
-  inherit (builtins) filter match;
+  inherit (builtins) elem filter match;
   inherit (nixpkgs.lib.attrsets) isDerivation filterAttrs mapAttrs;
   inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier;
   inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy mapAttrsToList optionalAttrs sort;
@@ -107,12 +107,19 @@
   #
   nurPackages = flake: let
     packages = flake.nurPackages or {};
-    valueCond = _: value: isDerivation value;
-    recurseCond = path: value: (path == []) || (value.recurseForDerivations or false);
-    pathToName = path: concatMapStringsSep "." escapeNixIdentifier path;
+    nurPackagesForSystem = system: let
+      valueCond = _: x: let
+        broken = x.meta.broken or false;
+        platforms = x.meta.platforms or [system];
+        badPlatforms = x.meta.badPlatforms or [];
+      in
+        (isDerivation x) && !broken && (elem system platforms) && !(elem system badPlatforms);
+      recurseCond = path: value: (path == []) || (value.recurseForDerivations or false);
+      pathToName = path: concatMapStringsSep "." escapeNixIdentifier path;
+    in
+      flattenAttrs valueCond recurseCond pathToName packages.${system};
   in
-    genAttrs (attrNames packages) (system:
-      flattenAttrs valueCond recurseCond pathToName packages.${system});
+    genAttrs (attrNames packages) nurPackagesForSystem;
 
   # Generate the set of job matrices for the flake.
   #
