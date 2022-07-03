@@ -85,6 +85,16 @@ runs:
         pushFilter: ${{ inputs.cachix-push-filter }}
         #cachixArgs: ${{ inputs.cachix-args }}
         installCommand: ${{ inputs.cachix-install-command }}
+    - name: Install build tools
+      if: endsWith(inputs.system, '-darwin')
+      shell: bash
+      run: |
+        # Install build tools
+
+        echo "::group::Install build tools"
+        # Instead of trying to cope with missing `-printf '%P\n` on Darwin..
+        nix-env -i -E '_: (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.findutils'
+        echo "::endgroup::"
     - name: Build
       shell: bash
       env:

@@ -254,11 +254,30 @@ jobs:
     secrets:
       cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+  x86_64-darwin:
+    needs:
+      - setup_flake
+      - setup_nur
+    if: >-
+      always()
+      && (needs.setup_flake.result == 'success')
+      && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
+    uses: ./.github/workflows/ci-per-system.yml
+    with:
+      system: x86_64-darwin
+      runs-on: macos-latest
+      flake-jobs: ${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-darwin.flake) }}
+      nur-jobs: ${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-darwin.nur) }}
+      cachix-name: ${{ needs.setup_flake.outputs.cachix_name }}
+    secrets:
+      cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
   finish:
     needs:
       - setup_flake
       - setup_nur
       - x86_64-linux
+      - x86_64-darwin
     runs-on: ubuntu-latest
     if: always()
     env:
@@ -267,6 +286,7 @@ jobs:
           (needs.setup_flake.result == 'success')
           && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
           && (needs.x86_64-linux.result == 'success')
+          && (needs.x86_64-darwin.result == 'success' || needs.x86_64-darwin.result == 'skipped')
         }}
     steps:
       - name: Notify on success
