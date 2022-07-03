@@ -26,23 +26,13 @@ env:
   nur_channels: nixpkgs-unstable nixos-unstable nixos-22.05 nixos-21.11
   nur_main_channel: nixos-22.05
 
-  flake_only: >-
-    ${{
-      (!!inputs.flake_only) ||
-      (
-        github.event_name == 'pull_request' &&
-        github.event.pull_request.head.repo.full_name == 'sigprof/test-workflows' &&
-        startsWith(github.event.pull_request.head.ref, 'automatic-flake-update/')
-      )
-    }}
-
 jobs:
-  setup:
+  setup_flake:
     runs-on: ubuntu-latest
     env:
       this_system: x86_64-linux
     outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
+      flake_jobs: ${{ steps.collect_flake_jobs.outputs.flake_jobs }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2.4.2
@@ -60,25 +50,25 @@ jobs:
       - name: Check flake evaluation
         run: nix flake check --no-build
 
-      - name: Prepare matrix for flake build jobs
-        id: flake_matrix
+      - name: Collect flake jobs
+        id: collect_flake_jobs
         run: |
-          # Prepare matrix for flake build jobs
-          flake_matrix="$(nix eval --json .\#lib.ciData.matrix)"
-          echo "::group::Flake matrix:"
-          printf '%s' "$flake_matrix" | jq
+          # Collect flake jobs
+          flake_jobs="$(nix eval --json .\#lib.ciData.matrix)"
+          echo "::group::Flake jobs:"
+          printf '%s' "$flake_jobs" | jq
           echo "::endgroup::"
-          printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
+          printf '::set-output name=flake_jobs::%s\n' "$flake_jobs"
 
-      - name: Get the list of setup checks
-        id: get_setup_checks
+      - name: Collect setup checks
+        id: collect_setup_checks
         env:
-          flake_matrix: ${{ steps.flake_matrix.outputs.flake_matrix }}
+          flake_jobs: ${{ steps.collect_flake_jobs.outputs.flake_jobs }}
         run: |
-          # Get the list of setup checks
+          # Collect setup checks
           setup_checks="$(
             jq -nc --arg system "$this_system" '
-            env.flake_matrix | fromjson |
+            env.flake_jobs | fromjson |
               { checks: [ .[$system].flake.setupChecks.item[].checks[] ] }?
             '
           )"
@@ -88,16 +78,40 @@ jobs:
           printf '::set-output name=setup_checks::%s\n' "$setup_checks"
 
       - name: Run setup checks
-        if: ${{ steps.get_setup_checks.outputs.setup_checks }}
+        if: ${{ steps.collect_setup_checks.outputs.setup_checks }}
         uses: ./.github/actions/nix-build
         with:
-          item: ${{ steps.get_setup_checks.outputs.setup_checks }}
+          item: ${{ steps.collect_setup_checks.outputs.setup_checks }}
           system: ${{ env.this_system }}
           cachix-name: ${{ env.CACHIX_NAME }}
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+  setup_nur:
+    runs-on: ubuntu-latest
+    outputs:
+      nur_jobs: ${{ steps.collect_nur_jobs.outputs.nur_jobs }}
+    if: >-
+      (!inputs.flake_only)
+      && !(
+        (github.event_name == 'pull_request')
+        && (github.event.pull_request.head.repo.full_name == 'sigprof/test-workflows')
+        && startsWith(github.event.pull_request.head.ref, 'automatic-flake-update/')
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.2
+
+      - name: Install Nix
+        uses: sigprof/install-nix-action@6c5ba55bfdc791cfad61ac72e473340c1c3ac992
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v10
+        with:
+          name: ${{ env.CACHIX_NAME }}
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: "pre-commit-hooks"
+
       - name: Check NUR evaluation
-        if: env.flake_only == 'false'
         run: |
           # Check NUR evaluation
           for channel in $nur_channels; do
@@ -112,12 +126,12 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Prepare matrix for NUR build jobs
-        id: nur_matrix
-        if: env.flake_only == 'false'
+      - name: Collect NUR jobs
+        id: collect_nur_jobs
         run: |
-          # Prepare matrix for NUR build jobs
-          nur_matrix=""
+          # Collect NUR jobs
+
+          # Determine how to handle `nixpkgs-unstable` and `nixos-unstable`.
           case "$nur_main_channel" in
             (nixos-unstable|nixpkgs-unstable)
               # If the flake follows one of the unstable channels, build NUR
@@ -151,6 +165,10 @@ jobs:
               fi
               ;;
           esac
+
+          # Collect NUR jobs for all possible (system, channel) combinations,
+          # accumulating them as multiple JSON values in $accumulated_nur_jobs.
+          accumulated_nur_jobs=""
           for system in $nur_systems; do
             for channel in $nur_channels; do
               case "$channel" in
@@ -164,7 +182,7 @@ jobs:
                   fi
                   ;;
               esac
-              nur_matrix_part="$(
+              nur_jobs_part="$(
                 NIX_PATH="nixpkgs=channel:$channel" \
                   nix eval --argstr system "$system" --json -f nur.nix lib.ciData.matrix |
                   jq -c --arg system "$system" --arg channel "$channel" --arg job "$job" '
@@ -186,23 +204,16 @@ jobs:
                       }
                   '
               )"
-              echo "::group::NUR matrix part ($system, $channel):"
-              printf '%s' "$nur_matrix_part" | jq
+              echo "::group::NUR jobs for $system, $channel:"
+              printf '%s' "$nur_jobs_part" | jq
               echo "::endgroup::"
-              nur_matrix="$nur_matrix$nur_matrix_part"
+              accumulated_nur_jobs="$accumulated_nur_jobs$nur_jobs_part"
             done
           done
-          printf '::set-output name=nur_matrix::%s\n' "$nur_matrix"
 
-      - name: Make combined matrix for all build jobs
-        id: matrix
-        env:
-          flake_matrix: ${{ steps.flake_matrix.outputs.flake_matrix }}
-          nur_matrix: ${{ steps.nur_matrix.outputs.nur_matrix }}
-        run: |
-          # Make combined matrix for all build jobs
-          matrix="$(
-            printf '%s' "$flake_matrix$nur_matrix" |
+          # Now merge multiple JSON objects into a single JSON.
+          nur_jobs="$(
+            printf '%s' "$accumulated_nur_jobs" |
               jq -c -n '
                 def mergeRecursive(a; b):
                   a as $a | b as $b
@@ -219,32 +230,39 @@ jobs:
                 reduce inputs as $item ({}; mergeRecursive(.; $item))
               '
           )"
-          echo "::group::Final matrix:"
-          printf '%s' "$matrix" | jq
+          echo "::group::Collected NUR jobs:"
+          printf '%s' "$nur_jobs" | jq
           echo "::endgroup::"
-          printf '::set-output name=matrix::%s\n' "$matrix"
+          printf '::set-output name=nur_jobs::%s\n' "$nur_jobs"
  
   x86_64-linux:
     needs:
-      - setup
+      - setup_flake
+      - setup_nur
+    if: >-
+      always()
+      && (needs.setup_flake.result == 'success')
+      && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
     uses: ./.github/workflows/ci-per-system.yml
     with:
       system: x86_64-linux
       runs-on: ubuntu-latest
-      flake-jobs: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux.flake) }}
-      nur-jobs: ${{ toJSON(fromJSON(needs.setup.outputs.matrix).x86_64-linux.nur) }}
+      flake-jobs: ${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-linux.flake) }}
+      nur-jobs: ${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-linux.nur) }}
     secrets: inherit
 
   finish:
     needs:
-      - setup
+      - setup_flake
+      - setup_nur
       - x86_64-linux
     runs-on: ubuntu-latest
     if: always()
     env:
       ci_success: >-
         ${{
-          (needs.setup.result == 'success')
+          (needs.setup_flake.result == 'success')
+          && (needs.setup_nur.result == 'success' || needs.setup_nur.result == 'skipped')
           && (needs.x86_64-linux.result == 'success')
         }}
     steps:
