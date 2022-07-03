@@ -39,6 +39,8 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    env:
+      this_system: x86_64-linux
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
@@ -63,6 +65,30 @@ jobs:
           printf '%s' "$flake_matrix" | jq
           echo "::endgroup::"
           printf '::set-output name=flake_matrix::%s\n' "$flake_matrix"
+      - name: Get the list of setup checks
+        id: get_setup_checks
+        env:
+          flake_matrix: ${{ steps.flake_matrix.outputs.flake_matrix }}
+        run: |
+          # Get the list of setup checks
+          setup_checks="$(
+            jq -nc --arg system "$this_system" '
+            env.flake_matrix | fromjson |
+              { checks: [ .[$system].flake.setupChecks.item[].checks[] ] }?
+            '
+          )"
+          echo "::group::Setup checks:"
+          printf '%s' "$setup_checks" | jq
+          echo "::endgroup::"
+          printf '::set-output name=setup_checks::%s\n' "$setup_checks"
+      - name: Run setup checks
+        if: ${{ steps.get_setup_checks.outputs.setup_checks }}
+        uses: ./.github/actions/nix-build
+        with:
+          item: ${{ steps.get_setup_checks.outputs.setup_checks }}
+          system: ${{ env.this_system }}
+          cachix-name: ${{ env.CACHIX_NAME }}
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Check NUR evaluation
         run: |
           # Check NUR evaluation
