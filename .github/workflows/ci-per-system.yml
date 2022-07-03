@@ -25,6 +25,28 @@ on:
         description: >
           The description of NUR-related build jobs in the JSON format, or an
           empty string if no NUR builds need to be performed.
+      cachix-name:
+        type: string
+        default: ''
+        description: >
+          Name of a Cachix cache to push and pull/substitute.
+      cachix-extra-pull-names:
+        type: string
+        default: ''
+        description: >
+          Comma-separated list of names for extra Cachix caches to
+          pull/substitute.
+    secrets:
+      cachix-auth-token:
+        required: false
+        description: >
+          Authentication token for Cachix; needed for private cache access and
+          for pushing objects to the cache.
+      cachix-signing-key:
+        required: false
+        description: >
+          Signing key secret for Cachix; needed for pushing objects to the
+          cache when signing is not managed by the Cachix service.
 
 jobs:
   early-checks:
@@ -40,8 +62,10 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   pkgs:
     runs-on: ${{ inputs.runs-on }}
@@ -56,8 +80,10 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   nur:
     runs-on: ${{ inputs.runs-on }}
@@ -73,8 +99,10 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   nur1:
     runs-on: ${{ inputs.runs-on }}
@@ -90,8 +118,10 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   nur2:
     needs:
@@ -112,8 +142,10 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   nur3:
     needs:
@@ -134,8 +166,10 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   hosts:
     needs:
@@ -155,8 +189,10 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}
 
   checks:
     needs:
@@ -176,5 +212,7 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
-          cachix-name: sigprof
-          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix-name: ${{ inputs.cachix-name }}
+          cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
+          cachix-auth-token: ${{ secrets.cachix-auth-token }}
+          cachix-signing-key: ${{ secrets.cachix-signing-key }}

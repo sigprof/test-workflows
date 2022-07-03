@@ -32,6 +32,7 @@ jobs:
     env:
       this_system: x86_64-linux
     outputs:
+      cachix_name: ${{ env.CACHIX_NAME }}
       flake_jobs: ${{ steps.collect_flake_jobs.outputs.flake_jobs }}
     steps:
       - name: Checkout
@@ -249,7 +250,9 @@ jobs:
       runs-on: ubuntu-latest
       flake-jobs: ${{ toJSON(fromJSON(needs.setup_flake.outputs.flake_jobs).x86_64-linux.flake) }}
       nur-jobs: ${{ toJSON(fromJSON(needs.setup_nur.outputs.nur_jobs || '{}').x86_64-linux.nur) }}
-    secrets: inherit
+      cachix-name: ${{ needs.setup_flake.outputs.cachix_name }}
+    secrets:
+      cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   finish:
     needs:
