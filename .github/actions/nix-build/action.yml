@@ -85,16 +85,6 @@ runs:
         pushFilter: ${{ inputs.cachix-push-filter }}
         #cachixArgs: ${{ inputs.cachix-args }}
         installCommand: ${{ inputs.cachix-install-command }}
-    - name: Install build tools
-      if: endsWith(inputs.system, '-darwin')
-      shell: bash
-      run: |
-        # Install build tools
-
-        echo "::group::Install build tools"
-        # Instead of trying to cope with missing `-printf '%P\n` on Darwin..
-        nix-env -i -E '_: (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.${builtins.currentSystem}.findutils'
-        echo "::endgroup::"
     - name: Build
       shell: bash
       env:
@@ -139,8 +129,9 @@ runs:
         echo "::endgroup::"
         echo "::group::Saving build logs"
         mkdir -p .build/logs
-        find /nix/var/log/nix/drvs -type f -printf '%P\n' |
+        ( cd /nix/var/log/nix/drvs && find . -type f; ) |
           while read log_src; do
+            log_src="${log_src##./}"
             log_dst="${log_src//\//}"
             printf '%s\n' "$log_dst"
             cp /nix/var/log/nix/drvs/"$log_src" .build/logs/"$log_dst" || touch .build/logs_fail
