@@ -15,10 +15,8 @@
         legacyPackages.${system} = pkgs;
       };
     };
-    lib = import ./lib self.inputs;
 
-    # Use `nurPackages` instead of `packages`, so that the CI matrix generation
-    # code creates the proper job names.
+    lib = import ./lib self.inputs;
     nurPackages.${system} = pkgs.callPackage ./pkgs {
       inherit (self) inputs;
     };

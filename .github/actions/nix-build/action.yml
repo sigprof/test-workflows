@@ -7,13 +7,13 @@ description: >
 inputs:
   item:
     required: true
-    description: The item to build specified in the JSON format
+    description: The item to build specified in the JSON format.
   system:
     required: true
-    description: Nix system name
+    description: Nix system name.
   channel:
     required: false
-    description: 'Nixpkgs channel (used for NUR packages)'
+    description: Nixpkgs channel (used for NUR packages).
 
   # Inputs passed to `cachix/install-nix-action`.
   nix-install-url:
@@ -72,6 +72,7 @@ runs:
         install_options: ${{ inputs.nix-install-options }}
         nix_path: ${{ inputs.nix-path }}
         extra_nix_config: ${{ inputs.nix-extra-config }}
+
     - name: Setup Cachix
       uses: cachix/cachix-action@v10
       if: inputs.cachix-name
@@ -85,6 +86,7 @@ runs:
         pushFilter: ${{ inputs.cachix-push-filter }}
         #cachixArgs: ${{ inputs.cachix-args }}
         installCommand: ${{ inputs.cachix-install-command }}
+
     - name: Build
       shell: bash
       env:
@@ -141,8 +143,9 @@ runs:
           echo "Warning: Some log files could not be copied" 1>&2
         fi
         exit $build_result
+
     - name: Upload build logs
-      if: ${{ always() }}
+      if: always()
       uses: actions/upload-artifact@v3.1.0
       with:
         name: build-logs-${{inputs.system}}-${{github.job}}-${{strategy.job-index}}

@@ -3,10 +3,10 @@
   nixpkgs,
   ...
 }: let
-  inherit (builtins) elem filter listToAttrs match;
-  inherit (nixpkgs.lib.attrsets) isDerivation filterAttrs mapAttrs mapAttrsToList nameValuePair;
-  inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier;
-  inherit (nixpkgs.lib) any attrNames fixedWidthNumber genAttrs groupBy optionalAttrs sort;
+  inherit (builtins) attrNames elem filter groupBy listToAttrs match;
+  inherit (nixpkgs.lib.attrsets) genAttrs isDerivation mapAttrs mapAttrsToList nameValuePair optionalAttrs;
+  inherit (nixpkgs.lib.lists) any;
+  inherit (nixpkgs.lib.strings) concatMapStringsSep escapeNixIdentifier fixedWidthNumber;
   inherit (self.lib.attrsets) flattenAttrs recursiveUpdateMany;
   inherit (self.lib.lists) findFirstIndex;
 
@@ -48,7 +48,7 @@
       else "0/" + (fixedWidthNumber 8 index);
     filteredNames = filter (isNameNotExcluded exclude) names;
     namesByGroup = groupBy getGroupForName filteredNames;
-    sortedGroupNames = sort builtins.lessThan (attrNames namesByGroup);
+    sortedGroupNames = attrNames namesByGroup;
   in
     map (groupName: namesByGroup.${groupName}) sortedGroupNames;
 
@@ -103,7 +103,10 @@
     recursiveUpdateMany (mapAttrsToList addSystem (flake.nixosConfigurations or {}));
 
   # Convert the nested attribute set from `flake.nurPackages` to a flat
-  # attribute set which would be usable with `matrixForPerSystemAttrs`.
+  # attribute set which would be usable with `matrixForPerSystemAttrs`.  During
+  # the conversion the packages are also filtered, so that only packages which
+  # are not broken and are declared as buildable on the corresponding system
+  # are included in the resulting set.
   #
   nurPackages = flake: let
     packages = flake.nurPackages or {};
