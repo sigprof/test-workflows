@@ -57,28 +57,28 @@
       system = flake-utils.lib.system.x86_64-linux;
     in {
       nixosConfigurations = {
-        #"example/minimal" = nixpkgs.lib.nixosSystem {
-        #  inherit system;
-        #  modules = [
-        #    {
-        #      system.stateVersion = "22.05";
-        #      networking.hostName = "minimal";
-        #      fileSystems."/".device = "/dev/sda1";
-        #      boot.loader.grub.device = "/dev/sda";
-        #    }
-        #  ];
-        #};
-        #"example/minimal2" = nixpkgs.lib.nixosSystem {
-        #  inherit system;
-        #  modules = [
-        #    {
-        #      system.stateVersion = "22.05";
-        #      networking.hostName = "minimal2";
-        #      fileSystems."/".device = "/dev/sda1";
-        #      boot.loader.grub.device = "/dev/sda";
-        #    }
-        #  ];
-        #};
+        "example/minimal" = nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [
+            {
+              system.stateVersion = "22.05";
+              networking.hostName = "minimal";
+              fileSystems."/".device = "/dev/sda1";
+              boot.loader.grub.device = "/dev/sda";
+            }
+          ];
+        };
+        "example/minimal2" = nixpkgs.lib.nixosSystem {
+          inherit system;
+          modules = [
+            {
+              system.stateVersion = "22.05";
+              networking.hostName = "minimal2";
+              fileSystems."/".device = "/dev/sda1";
+              boot.loader.grub.device = "/dev/sda";
+            }
+          ];
+        };
       };
       lib = import ./lib inputs;
     });
