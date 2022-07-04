@@ -5,32 +5,54 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
     flake-utils.url = "github:numtide/flake-utils";
 
-    flake-compat.url = "github:edolstra/flake-compat";
-    flake-compat.flake = false;
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit-hooks.inputs.flake-utils.follows = "flake-utils";
   };
 
   outputs = inputs @ {
     self,
     nixpkgs,
     flake-utils,
+    pre-commit-hooks,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
+      inherit (flake-utils.lib) filterPackages flattenTree;
       pkgs = nixpkgs.legacyPackages.${system};
+      legacyPackages = pkgs.callPackage ./pkgs {inherit inputs;};
+      packages = filterPackages system ((flattenTree legacyPackages)
+        // {
+          default = legacyPackages.hello;
+        });
     in {
-      packages = flake-utils.lib.filterPackages system (flake-utils.lib.flattenTree (
-        let
-          packages = pkgs.callPackage ./pkgs {inherit inputs;};
-        in
-          packages
-          // {
-            default = packages.hello;
-          }
-      ));
-      checks = nixpkgs.lib.optionalAttrs (self?packages.${system}.default) {
-        default-package = self.packages.${system}.default;
-      };
+      inherit packages legacyPackages;
     })
+    // (
+      let
+        checkedSystems = with flake-utils.lib.system; [
+          x86_64-linux
+          x86_64-darwin
+          aarch64-linux
+          aarch64-darwin
+          # No `i686-linux` because `pre-commit-hooks` does not evaluate
+        ];
+      in
+        flake-utils.lib.eachSystem checkedSystems (system: {
+          checks =
+            {
+              pre-commit = pre-commit-hooks.lib.${system}.run {
+                src = ./.;
+                hooks = {
+                  alejandra.enable = true;
+                };
+              };
+            }
+            // nixpkgs.lib.optionalAttrs (self.packages.${system} ? default) {
+              default-package = self.packages.${system}.default;
+            };
+        })
+    )
     // (let
       system = flake-utils.lib.system.x86_64-linux;
     in {

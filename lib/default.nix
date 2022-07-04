@@ -1,6 +1,8 @@
 {nixpkgs, ...} @ args: let
-  inherit (builtins) map isPath;
-  inherit (nixpkgs.lib) isFunction isAttrs recursiveUpdate foldl;
+  inherit (builtins) isAttrs isPath map;
+  inherit (nixpkgs.lib.attrsets) recursiveUpdate;
+  inherit (nixpkgs.lib.lists) foldl;
+  inherit (nixpkgs.lib.trivial) isFunction;
 
   # Apply `recursiveUpdate` to the list of attribute sets, producing a merged
   # attribute set.
@@ -39,6 +41,7 @@ in
       attrsets = {inherit recursiveUpdateMany;};
       chunks = {inherit importChunk importChunks mergeChunks;};
     }
+    ./attrsets.nix
     ./ci.nix
     ./ci-data.nix
     ./lists.nix
