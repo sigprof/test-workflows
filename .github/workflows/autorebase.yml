@@ -9,40 +9,29 @@ on:
       - labeled
 
   # Run when the `CI` workflow run is requested.  This roundabout way is used
-  # to hide the `autorebase` workflow from the list of checks.
+  # to hide the `autorebase` workflow from the list of checks, at the cost of
+  # losing the possibility to autorebase PRs to branches that are not checked
+  # by CI on every push.
   workflow_run:
     types:
       - requested
     workflows:
-      - trigger-on-push
+      - CI
 
 jobs:
   autorebase:
     runs-on: ubuntu-latest
     if: >-
-      ${{
-        (
-          (github.event_name == 'push')
-          && (github.ref_type == 'branch')
-        )
-        || (
-          (github.event_name == 'pull_request_target')
-          && (github.event.action == 'labeled')
-          && (github.event.label.name == 'autorebase:opt-in')
-        )
-        || (
-          (github.event_name == 'workflow_run')
-        )
-      }}
+      (
+        (github.event_name == 'pull_request_target')
+        && (github.event.action == 'labeled')
+        && (github.event.label.name == 'autorebase:opt-in')
+      )
+      || (
+        (github.event_name == 'workflow_run')
+      )
     steps:
-      - id: debug
-        name: Debug
-        env:
-          github_context: ${{ toJSON(github) }}
-        run: true
-
       - id: token
-        if: false
         name: Generate a GitHub token
         uses: tibdex/github-app-token@v1.5.2
         with:
@@ -51,9 +40,7 @@ jobs:
 
       - id: rebase
         name: Rebase the eligible PRs
-        if: false
         uses: peter-evans/rebase@v2.0.0
         with:
           token: ${{ steps.token.outputs.token }}
           include-labels: "autorebase:opt-in"
-          base: ${{ github.ref_name }}
