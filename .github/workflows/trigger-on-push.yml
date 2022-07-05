@@ -6,7 +6,7 @@ on:
       - "**"
 
 jobs:
-  _:
+  '':
     runs-on: ubuntu-latest
     if: false
     steps:
