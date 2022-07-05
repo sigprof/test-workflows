@@ -81,5 +81,6 @@
         };
       };
       lib = import ./lib inputs;
+      overlays.default = import ./overlay.nix;
     });
 }
