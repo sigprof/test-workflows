@@ -9,3 +9,5 @@ jobs:
   dummy:
     runs-on: ubuntu-latest
     if: false
+    steps:
+      - run: true
