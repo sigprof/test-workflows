@@ -14,7 +14,7 @@ on:
     types:
       - requested
     workflows:
-      - CI
+      - trigger-on-push
 
 jobs:
   autorebase:

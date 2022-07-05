@@ -1,0 +1,6 @@
+name: trigger-on-push
+
+on:
+  push:
+    branches:
+      - "**"
