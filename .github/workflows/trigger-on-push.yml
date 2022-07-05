@@ -5,8 +5,11 @@ on:
     branches:
       - "**"
 
+if: false
+
 jobs:
   dummy:
+    name: null
     runs-on: ubuntu-latest
     if: false
     steps:
