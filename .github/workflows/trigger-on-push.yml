@@ -4,3 +4,8 @@ on:
   push:
     branches:
       - "**"
+
+jobs:
+  dummy:
+    runs-on: ubuntu-latest
+    if: false
