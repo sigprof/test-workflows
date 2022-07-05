@@ -1,17 +1,20 @@
 name: autorebase
 
 on:
-  # Run on every push to any branch (not a tag).
-  push:
-    branches:
-      - "**"
-
   # Run when a pull request gets labeled.  Note that the workflow runs from the
   # base branch of the PR in this case, because `pull_request_target` is used
   # instead of `pull_request`.
   pull_request_target:
     types:
       - labeled
+
+  # Run when the `CI` workflow run is requested.  This roundabout way is used
+  # to hide the `autorebase` workflow from the list of checks.
+  workflow_run:
+    types:
+      - requested
+    workflows:
+      - CI
 
 jobs:
   autorebase:
@@ -27,9 +30,19 @@ jobs:
           && (github.event.action == 'labeled')
           && (github.event.label.name == 'autorebase:opt-in')
         )
+        || (
+          (github.event_name == 'workflow_run')
+        )
       }}
     steps:
+      - id: debug
+        name: Debug
+        env:
+          github_context: ${{ toJSON(github) }}
+        run: true
+
       - id: token
+        if: false
         name: Generate a GitHub token
         uses: tibdex/github-app-token@v1.5.2
         with:
@@ -38,6 +51,7 @@ jobs:
 
       - id: rebase
         name: Rebase the eligible PRs
+        if: false
         uses: peter-evans/rebase@v2.0.0
         with:
           token: ${{ steps.token.outputs.token }}
