@@ -18,19 +18,18 @@ jobs:
 
       - name: Getting URLs for the job ID ${{ steps.job_id.outputs.job_id }}
         run: |
-          curl -H 'Authorization: token ${{github.token}}' \
-            -H 'Accept: application/vnd.github+json' \
-            '${{github.api_url}}/repos/${{github.repository}}/action/runs/${{github.run_id}}/jobs?filter=latest&per_page=100'
+          for delay in 1 2 5; do
+            curl -H 'Authorization: token ${{github.token}}' \
+              -H 'Accept: application/vnd.github+json' \
+              '${{github.api_url}}/repos/${{github.repository}}/action/runs/${{github.run_id}}/jobs?filter=latest&per_page=100'
+            sleep $delay
+          done
 
       - name: Try to find my run ID
         run: |
-          # Try to find my run ID
-          for delay in 1 2 5; do
-            curl -H "Accept: application/vnd.github+json" \
-              -H 'Authorization: token ${{github.token}}' \
-              '${{github.api_url}}/repos/${{github.repository}}/commits/${{github.sha}}/check-runs?status=in_progress&check_name=dump%20(${{matrix.item}})'
-            sleep $delay
-          done
+          curl -H "Accept: application/vnd.github+json" \
+            -H 'Authorization: token ${{github.token}}' \
+            '${{github.api_url}}/repos/${{github.repository}}/commits/${{github.sha}}/check-runs?status=in_progress&check_name=dump%20(${{matrix.item}})'
 
       - name: Dump JSON contexts
         env:
