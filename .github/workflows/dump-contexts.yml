@@ -1,3 +1,4 @@
+name: dump-contexts
 on:
   workflow_dispatch:
 
@@ -10,7 +11,7 @@ jobs:
           - item_1
           - item_2
     steps:
-      - name: Dump
+      - name: Dump JSON contexts
         env:
           github: ${{ toJSON(github) }}
           strategy: ${{ toJSON(strategy) }}
@@ -19,10 +20,12 @@ jobs:
           runner: ${{ toJSON(runner) }}
           env: ${{ toJSON(env) }}
         run: |
-          # Dump contexts
+          # Dump JSON contexts
           for var in github strategy matrix job runner env; do
             echo "::group::$var"
             jq -n "env.${var} | fromjson"
             echo "::endgroup::"
           done
 
+      - name: Dump shell environment
+        run: set
