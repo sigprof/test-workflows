@@ -15,8 +15,8 @@ jobs:
         run: |
           # Try to find my run ID
           curl -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            '${{github.api_url}}/repos/${{github.repository}}/commits/${{github.sha}}/check-runs?status=in_progress&check_name=Dump%20(${{matrix.item}})'
+            -H 'Authorization: token ${{github.token}}' \
+            '${{github.api_url}}/repos/${{github.repository}}/commits/${{github.sha}}/check-runs?status=in_progress&check_name=dump%20(${{matrix.item}})'
 
       - name: Dump JSON contexts
         env:
