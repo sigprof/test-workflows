@@ -21,7 +21,7 @@ jobs:
           for delay in 1 2 5; do
             curl -H 'Authorization: token ${{github.token}}' \
               -H 'Accept: application/vnd.github+json' \
-              '${{github.api_url}}/repos/${{github.repository}}/action/runs/${{github.run_id}}/jobs?filter=latest&per_page=100'
+              '${{github.api_url}}/repos/${{github.repository}}/actions/runs/${{github.run_id}}/jobs?filter=latest&per_page=100'
             sleep $delay
           done
 
