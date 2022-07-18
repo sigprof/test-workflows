@@ -11,6 +11,17 @@ jobs:
           - item_1
           - item_2
     steps:
+      - name: Generating an unique job ID
+        id: job_id
+        run: |
+          echo "::set-output name=job_id::$(uuidgen -r)"
+
+      - name: Getting URLs for the job ID ${{ steps.job_id.outputs.job_id }}
+        run: |
+          curl -H 'Authorization: token ${{github.token}}' \
+            -H 'Accept: application/vnd.github+json' \
+            '${{github.api_url}}/repos/${{github.repository}}/action/runs/${{github.run_id}}/jobs?filter=latest&per_page=100'
+
       - name: Try to find my run ID
         run: |
           # Try to find my run ID
