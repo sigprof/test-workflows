@@ -1,0 +1,28 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        item:
+          - item_1
+          - item_2
+    steps:
+      - name: Dump
+        env:
+          github: ${{ toJSON(github) }}
+          strategy: ${{ toJSON(strategy) }}
+          matrix: ${{ toJSON(matrix) }}
+          job: ${{ toJSON(job) }}
+          runner: ${{ toJSON(runner) }}
+          env: ${{ toJSON(env) }}
+        run: |
+          # Dump contexts
+          for var in github strategy matrix job runner env; do
+            echo "::group::$var"
+            jq -n "env.${var} | fromjson"
+            echo "::endgroup::"
+          done
+
