@@ -36,7 +36,7 @@ jobs:
               if (i > 0) {
                 await new Promise(r => setTimeout(r, i * 1000));
               }
-              for await (const job of github.paginate.iterator(
+              for await (const response of github.paginate.iterator(
                 github.rest.actions.listJobsForWorkflowRun,
                 {
                   owner: context.repo.owner,
@@ -44,15 +44,18 @@ jobs:
                   run_id: context.runId
                 }
               )) {
-                core.startGroup(`iteration ${i}`);
-                console.log(job);
-                core.endGroup();
-                for (const step of job.steps) {
-                  if (step.name.includes(jobId)) {
-                    core.startGroup(`Job info obtained on iteration ${i}`);
-                    console.log(job);
-                    core.endGroup();
-                    return job;
+                const jobs = response.data;
+                for (const job of jobs) {
+                  core.startGroup(`iteration ${i}`);
+                  console.log(job);
+                  core.endGroup();
+                  for (const step of job.steps) {
+                    if (step.name.includes(jobId)) {
+                      core.startGroup(`Job info obtained on iteration ${i}`);
+                      console.log(job);
+                      core.endGroup();
+                      return job;
+                    }
                   }
                 }
               }
