@@ -59,7 +59,7 @@ jobs:
 
       - name: Show job URL
         if: fromJSON(steps.job_info.outputs.result)
-        uses: actions/github-script/v6.1.0
+        uses: actions/github-script@v6.1.0
         env:
           JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url }}
         with:
@@ -74,7 +74,7 @@ jobs:
           job: ${{ toJSON(job) }}
           runner: ${{ toJSON(runner) }}
           env: ${{ toJSON(env) }}
-        uses: actions/github-script/v6.1.0
+        uses: actions/github-script@v6.1.0
         with:
           script: |
             function dump(name, getData) {
