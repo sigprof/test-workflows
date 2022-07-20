@@ -75,7 +75,7 @@ jobs:
       - name: Show job URL with fallback to run URL
         uses: actions/github-script@v6.1.0
         env:
-          JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id }}
+          JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
         with:
           script: |
             console.log(process.env.JOB_URL);
