@@ -4,7 +4,6 @@ on:
 
 jobs:
   dump:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         item:
@@ -14,6 +13,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
+    runs-on: ${{ matrix.runs-on }}
 
     steps:
       - name: Generate an unique job ID
@@ -44,11 +44,7 @@ jobs:
                   run_id: context.runId
                 }
               )) {
-                const jobs = response.data;
-                for (const job of jobs) {
-                  core.startGroup(`iteration ${i}`);
-                  console.log(job);
-                  core.endGroup();
+                for (const job of response.data) {
                   for (const step of job.steps) {
                     if (step.name.includes(jobId)) {
                       core.startGroup(`Job info obtained on iteration ${i}`);
