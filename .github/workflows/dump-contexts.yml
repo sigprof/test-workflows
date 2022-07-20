@@ -9,11 +9,11 @@ jobs:
       matrix:
         item:
           - item_1
-          # item_2
+          - item_2
         runs-on:
           - ubuntu-latest
-          # macos-latest
-          # windows-latest
+          - macos-latest
+          - windows-latest
 
     steps:
       - name: Generate an unique job ID
