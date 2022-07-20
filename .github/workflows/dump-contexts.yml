@@ -9,11 +9,11 @@ jobs:
       matrix:
         item:
           - item_1
-          - item_2
+          # item_2
         runs-on:
           - ubuntu-latest
-          - macos-latest
-          - windows-latest
+          # macos-latest
+          # windows-latest
 
     steps:
       - name: Generate an unique job ID
@@ -32,7 +32,7 @@ jobs:
         with:
           script: |
             const jobId = process.env.JOB_ID;
-            for (var i = 0; i < 10; ++i) {
+            for (let i = 0; i < 10; ++i) {
               if (i > 0) {
                 await new Promise(r => setTimeout(r, i * 1000));
               }
@@ -45,7 +45,7 @@ jobs:
                 }
               )) {
                 for (const step of job.steps) {
-                  if (step.name.includes(jobId) {
+                  if (step.name.includes(jobId)) {
                     core.startGroup(`Job info obtained on iteration ${i}`);
                     console.log(job);
                     core.endGroup();
