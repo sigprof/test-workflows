@@ -44,6 +44,9 @@ jobs:
                   run_id: context.runId
                 }
               )) {
+                core.startGroup(`iteration ${i}`);
+                console.log(job);
+                core.endGroup();
                 for (const step of job.steps) {
                   if (step.name.includes(jobId)) {
                     core.startGroup(`Job info obtained on iteration ${i}`);
