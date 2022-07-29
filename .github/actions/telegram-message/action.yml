@@ -103,6 +103,9 @@ runs:
             baseUrl: "https://api.telegram.org",
             url: "/bot{api_key}/sendMessage",
             method: "POST",
+            headers: {
+              accept: "application/json",
+            },
             request: {
               hook: async (request, endpointOptions) => {
                 await core.group("hook: endpointOptions", () => { console.log(endpointOptions); });
