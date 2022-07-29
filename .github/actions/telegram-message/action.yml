@@ -16,12 +16,12 @@ inputs:
       `@channel_username` to send the message to a channel specified by
       username.
     required: true
-  message:
+  text:
     description: >
       Text of the message to be sent.  Should be in the `MarkdownV2` format,
       unless another format is specified in `message_format`.
     required: true
-  message_format:
+  parse_mode:
     description: >
       Message text format (called “parse mode” in the Telegram bot API).
       Supported formats are `MarkdownV2` (default), `HTML` or `Markdown`
@@ -66,8 +66,8 @@ runs:
       env:
         INPUT_API_KEY: ${{ inputs.api_key }}
         INPUT_CHAT_ID: ${{ inputs.chat_id }}
-        INPUT_MESSAGE: ${{ inputs.message }}
-        INPUT_MESSAGE_FORMAT: ${{ inputs.message_format }}
+        INPUT_TEXT: ${{ inputs.text }}
+        INPUT_PARSE_MODE: ${{ inputs.parse_mode }}
         INPUT_DISABLE_WEB_PAGE_PREVIEW: ${{ inputs.disable_web_page_preview }}
         INPUT_DISABLE_NOTIFICATION: ${{ inputs.disable_notification }}
         INPUT_PROTECT_CONTENT: ${{ inputs.protect_content }}
@@ -77,8 +77,8 @@ runs:
           const inputs = {
             api_key: core.getInput("api_key"),
             chat_id: core.getInput("chat_id"),
-            message: core.getInput("message"),
-            message_format: core.getInput("message_format"),
+            text: core.getInput("text"),
+            parse_mode: core.getInput("parse_mode"),
             disable_web_page_preview: core.getBooleanInput("disable_web_page_preview"),
             disable_notification: core.getBooleanInput("disable_notification"),
             protect_content: core.getBooleanInput("protect_content"),

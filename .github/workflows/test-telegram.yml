@@ -2,7 +2,7 @@ name: test-telegram
 on:
   workflow_dispatch:
     inputs:
-      message:
+      text:
         required: true
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
         with:
           api_key: ${{ secrets.TELEGRAM_API_KEY }}
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-          message: ${{ inputs.message }}
+          text: ${{ inputs.text }}
 
       - name: Show result
         env:
