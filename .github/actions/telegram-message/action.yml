@@ -1,0 +1,100 @@
+name: Send a Telegram message
+author: Sergey Vlasov
+description: Send a Telegram text message
+branding:
+  icon: send
+  color: blue
+
+inputs:
+  api_key:
+    description: >
+      Telegram API key (bot authentication token).
+    required: true
+  chat_id:
+    description: >
+      Telegram chat ID to send message to.  May also be a string like
+      `@channel_username` to send the message to a channel specified by
+      username.
+    required: true
+  message:
+    description: >
+      Text of the message to be sent.  Should be in the `MarkdownV2` format,
+      unless another format is specified in `message_format`.
+    required: true
+  message_format:
+    description: >
+      Message text format (called “parse mode” in the Telegram bot API).
+      Supported formats are `MarkdownV2` (default), `HTML` or `Markdown`
+      (legacy).
+    required: false
+    default: MarkdownV2
+  disable_web_page_preview:
+    description: >
+      Set to `true` to disable link previews for links in this message.
+    required: false
+    default: 'false'
+  disable_notification:
+    description: >
+      Set to `true` to send the message silently (the user will receive a
+      notification with no sound).
+    required: false
+    default: 'false'
+  protect_content:
+    description: >
+      Set to `true` to protect the content of the sent message from forwarding
+      and saving.
+    required: false
+    default: 'false'
+  reply_to_message_id:
+    description: >
+      If specified, the message is sent as a reply to the message with the
+      specified ID.
+    required: false
+
+outputs:
+  sent_message:
+    description: >
+      Sent message as returned by the Telegram API in the JSON format.
+    value: ${{ steps.send.outputs.sent_message }}
+
+runs:
+  using: composite
+  steps:
+    - name: Send a Telegram message
+      id: send
+      uses: actions/github-script@v6.1.0
+      env:
+        INPUT_API_KEY: ${{ inputs.api_key }}
+        INPUT_CHAT_ID: ${{ inputs.chat_id }}
+        INPUT_MESSAGE: ${{ inputs.message }}
+        INPUT_MESSAGE_FORMAT: ${{ inputs.message_format }}
+        INPUT_DISABLE_WEB_PAGE_PREVIEW: ${{ inputs.disable_web_page_preview }}
+        INPUT_DISABLE_NOTIFICATION: ${{ inputs.disable_notification }}
+        INPUT_PROTECT_CONTENT: ${{ inputs.protect_content }}
+        INPUT_REPLY_TO_MESSAGE_ID: ${{ inputs.reply_to_message_id }}
+      with:
+        script: |
+          const inputs = {
+            api_key: core.getInput("api_key"),
+            chat_id: core.getInput("chat_id"),
+            message: core.getInput("message"),
+            message_format: core.getInput("message_format"),
+            disable_web_page_preview: core.getBooleanInput("disable_web_page_preview"),
+            disable_notification: core.getBooleanInput("disable_notification"),
+            protect_content: core.getBooleanInput("protect_content"),
+            reply_to_message_id: core.getInput("reply_to_message_id"),
+          };
+          const requestParams = {
+            ...inputs,
+            baseUrl: "https://api.telegram.org",
+            url: "/bot{api_key}/sendMessage",
+            method: "POST",
+          };
+          await core.group("requestParams", () => { console.log(requestParams); });
+          const result = await github.request(requestParams);
+          await core.group("result", () => { console.log(result); });
+          if (result.status == 200) {
+            return result.data;
+          } else {
+            return null;
+          }

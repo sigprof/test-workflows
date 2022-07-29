@@ -1,0 +1,23 @@
+name: test-telegram
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message
+        id: send
+        uses: ./.github/actions/telegram-message
+        with:
+          api_key: ${{ secrets.TELEGRAM_API_KEY }}
+          chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+          message: ${{ inputs.message }}
+
+      - name: Show result
+        env:
+          sent_message: ${{ steps.send.outputs.sent_message }}
+        run: jq -n 'env.sent_message | fromjson'
