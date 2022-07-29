@@ -4,6 +4,8 @@ on:
     inputs:
       text:
         required: true
+      parse_mode:
+        required: false
 
 jobs:
   test:
@@ -19,6 +21,7 @@ jobs:
           api_key: ${{ secrets.TELEGRAM_API_KEY }}
           chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
           text: ${{ inputs.text }}
+          parse_mode: ${{ inputs.parse_mode }}
 
       - name: Show result
         env:

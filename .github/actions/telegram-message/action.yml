@@ -1,6 +1,9 @@
 name: Send a Telegram message
 author: Sergey Vlasov
-description: Send a Telegram text message
+description: >
+  Send a Telegram text message using the Telegram bot API
+  (https://core.telegram.org/bots/api#sendmessage).
+
 branding:
   icon: send
   color: blue
@@ -13,13 +16,13 @@ inputs:
   chat_id:
     description: >
       Telegram chat ID to send message to.  May also be a string like
-      `@channel_username` to send the message to a channel specified by
+      `@channel_username` to send the message to a channel specified by the
       username.
     required: true
   text:
     description: >
       Text of the message to be sent.  Should be in the `MarkdownV2` format,
-      unless another format is specified in `message_format`.
+      unless another format is specified in `parse_mode`.
     required: true
   parse_mode:
     description: >
@@ -47,15 +50,24 @@ inputs:
     default: 'false'
   reply_to_message_id:
     description: >
-      If specified, the message is sent as a reply to the message with the
-      specified ID.
+      If specified, the message is sent as a reply to the original message with
+      the specified ID.  If the original message does not exist, by default the
+      message will not be sent at all; set `allow_sending_without_reply` to
+      `true` in order to send a normal message instead of a reply in that case.
     required: false
+  allow_sending_without_reply:
+    description: >
+      Set to `true` to send a normal message instead of a reply when the
+      message specified in `reply_to_message_id` does not exist.
+    required: false
+    default: 'false'
 
 outputs:
   sent_message:
     description: >
-      Sent message as returned by the Telegram API in the JSON format.
-    value: ${{ steps.send.outputs.sent_message }}
+      The sent message in the JSON format, as returned by the Telegram API.
+      See <https://core.telegram.org/bots/api#message> for the data format.
+    value: ${{ steps.send.outputs.result }}
 
 runs:
   using: composite
@@ -72,6 +84,7 @@ runs:
         INPUT_DISABLE_NOTIFICATION: ${{ inputs.disable_notification }}
         INPUT_PROTECT_CONTENT: ${{ inputs.protect_content }}
         INPUT_REPLY_TO_MESSAGE_ID: ${{ inputs.reply_to_message_id }}
+        INPUT_ALLOW_SENDING_WITHOUT_REPLY: ${{ inputs.allow_sending_without_reply }}
       with:
         script: |
           const inputs = {
@@ -83,6 +96,7 @@ runs:
             disable_notification: core.getBooleanInput("disable_notification"),
             protect_content: core.getBooleanInput("protect_content"),
             reply_to_message_id: core.getInput("reply_to_message_id"),
+            allow_sending_without_reply: core.getBooleanInput("allow_sending_without_reply"),
           };
           const requestParams = {
             ...inputs,
