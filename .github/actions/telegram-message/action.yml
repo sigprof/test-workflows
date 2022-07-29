@@ -106,12 +106,12 @@ runs:
             headers: {
               accept: "application/json",
             },
-            request: {
+            /* request: {
               hook: async (request, endpointOptions) => {
                 await core.group("hook: endpointOptions", () => { console.log(endpointOptions); });
                 await core.group("hook: request", () => { console.log(request); });
               },
-            },
+            }, */
           };
           await core.group("requestParams", () => { console.log(requestParams); });
           const result = await github.request(requestParams);
