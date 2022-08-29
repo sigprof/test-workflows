@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Generate an unique job ID
         id: job_id
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.2.0
         with:
           result-encoding: string
           script: |
@@ -26,7 +26,7 @@ jobs:
 
       - name: Get info for the job ID ${{ steps.job_id.outputs.result }}
         id: job_info
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.2.0
         env:
           JOB_ID: ${{ steps.job_id.outputs.result }}
         with:
@@ -61,7 +61,7 @@ jobs:
 
       - name: Show job URL
         if: fromJSON(steps.job_info.outputs.result)
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.2.0
         env:
           JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url }}
         with:
@@ -69,7 +69,7 @@ jobs:
             console.log(process.env.JOB_URL);
 
       - name: Show job URL with fallback to run URL
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.2.0
         env:
           JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
         with:
@@ -84,7 +84,7 @@ jobs:
           job: ${{ toJSON(job) }}
           runner: ${{ toJSON(runner) }}
           env: ${{ toJSON(env) }}
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.2.0
         with:
           script: |
             function dump(name, getData) {
