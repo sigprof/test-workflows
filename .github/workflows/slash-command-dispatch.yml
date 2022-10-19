@@ -16,7 +16,7 @@ jobs:
           private_key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Slash Command Dispatch
-        uses: peter-evans/slash-command-dispatch@v3.0.0
+        uses: peter-evans/slash-command-dispatch@v3.0.1
         with:
           token: ${{ steps.token.outputs.token }}
           reaction-token: ${{ steps.token.outputs.token }}
