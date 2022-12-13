@@ -9,7 +9,7 @@ jobs:
       matrix: ${{ steps.generate_matrix.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.2.0
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
@@ -32,7 +32,7 @@ jobs:
       automerge: ${{ matrix.input == 'nixpkgs' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.2.0
 
       - name: Install Nix
         uses: cachix/install-nix-action@v17
