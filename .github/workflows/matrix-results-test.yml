@@ -30,7 +30,7 @@ jobs:
         run: |
           echo '${{matrix.os}}:${{matrix.node-version}}' > output_${{strategy.job-index}}.txt
       - name: Upload results as artifact
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: build-output
           path: output_${{strategy.job-index}}.txt
