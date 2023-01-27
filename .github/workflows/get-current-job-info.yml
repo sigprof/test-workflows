@@ -24,7 +24,7 @@ jobs:
         # The first step is to generate an identifier which is unique for this
         # particular invocation of the job.
         id: job_id
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.4.0
         with:
           result-encoding: string
           script: |
@@ -43,7 +43,7 @@ jobs:
         # unexpanded expression.
         #
         id: job_info
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.4.0
         env:
           # The ID which was substituted into the step name needs to be passed
           # to the script.
@@ -81,7 +81,7 @@ jobs:
         # using an expression.  It will be skipped if the `job_info` step
         # failed to get the job info for some reason.
         if: fromJSON(steps.job_info.outputs.result)
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.4.0
         env:
           JOB_URL: ${{ fromJSON(steps.job_info.outputs.result).html_url }}
         with:
@@ -89,7 +89,7 @@ jobs:
             console.log(process.env.JOB_URL);
 
       - name: Show job URL with fallback to run URL
-        uses: actions/github-script@v6.1.0
+        uses: actions/github-script@v6.4.0
         env:
           # This step demonstrates how to get the URL for the job log page with
           # a fallback to the summary page in case the `job_info` step failed
