@@ -25,6 +25,11 @@ on:
         description: >
           The description of NUR-related build jobs in the JSON format, or an
           empty string if no NUR builds need to be performed.
+      nix-install-url:
+        type: string
+        default: ''
+        description: >
+          Installation URL that will contain a script to install Nix.
       cachix-name:
         type: string
         default: ''
@@ -48,10 +53,17 @@ on:
           Signing key secret for Cachix; needed for pushing objects to the
           cache when signing is not managed by the Cachix service.
 
+permissions: {}
+
+env:
+  NIX_CONFIG: access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   early-checks:
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.flake-jobs).earlyChecks.item[0]
+    if: >-
+      (always() && !cancelled())
+      && fromJSON(inputs.flake-jobs).earlyChecks.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.flake-jobs).earlyChecks }}
     steps:
@@ -62,6 +74,7 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -69,7 +82,9 @@ jobs:
 
   pkgs:
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.flake-jobs).packages.item[0]
+    if: >-
+      (always() && !cancelled())
+      && fromJSON(inputs.flake-jobs).packages.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.flake-jobs).packages }}
     steps:
@@ -80,6 +95,7 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -87,7 +103,9 @@ jobs:
 
   nur:
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.nur-jobs).other.include[0]
+    if: >-
+      (always() && !cancelled())
+      && fromJSON(inputs.nur-jobs).other.include[0]
     strategy:
       matrix: ${{ fromJSON(inputs.nur-jobs).other }}
     steps:
@@ -99,6 +117,7 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -106,7 +125,9 @@ jobs:
 
   nur1:
     runs-on: ${{ inputs.runs-on }}
-    if: fromJSON(inputs.nur-jobs).stage1.include[0]
+    if: >-
+      (always() && !cancelled())
+      && fromJSON(inputs.nur-jobs).stage1.include[0]
     strategy:
       matrix: ${{ fromJSON(inputs.nur-jobs).stage1 }}
     steps:
@@ -118,6 +139,7 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -127,10 +149,10 @@ jobs:
     needs:
       - pkgs
     runs-on: ${{ inputs.runs-on }}
-    if: >
-      always() &&
-      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
-      fromJSON(inputs.nur-jobs).stage2.include[0]
+    if: >-
+      (always() && !cancelled())
+      && (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped')
+      && fromJSON(inputs.nur-jobs).stage2.include[0]
     strategy:
       matrix: ${{ fromJSON(inputs.nur-jobs).stage2 }}
     steps:
@@ -142,6 +164,7 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -151,10 +174,10 @@ jobs:
     needs:
       - nur1
     runs-on: ${{ inputs.runs-on }}
-    if: >
-      always() &&
-      (needs.nur1.result == 'success' || needs.nur1.result == 'skipped') &&
-      fromJSON(inputs.nur-jobs).stage3.include[0]
+    if: >-
+      (always() && !cancelled())
+      && (needs.nur1.result == 'success' || needs.nur1.result == 'skipped')
+      && fromJSON(inputs.nur-jobs).stage3.include[0]
     strategy:
       matrix: ${{ fromJSON(inputs.nur-jobs).stage3 }}
     steps:
@@ -166,6 +189,7 @@ jobs:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
           channel: ${{ matrix.channel }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -175,10 +199,10 @@ jobs:
     needs:
       - pkgs
     runs-on: ${{ inputs.runs-on }}
-    if: >
-      always() &&
-      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
-      fromJSON(inputs.flake-jobs).hosts.item[0]
+    if: >-
+      (always() && !cancelled())
+      && (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped')
+      && fromJSON(inputs.flake-jobs).hosts.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.flake-jobs).hosts }}
     steps:
@@ -189,6 +213,7 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
@@ -198,10 +223,10 @@ jobs:
     needs:
       - pkgs
     runs-on: ${{ inputs.runs-on }}
-    if: >
-      always() &&
-      (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped') &&
-      fromJSON(inputs.flake-jobs).checks.item[0]
+    if: >-
+      (always() && !cancelled())
+      && (needs.pkgs.result == 'success' || needs.pkgs.result == 'skipped')
+      && fromJSON(inputs.flake-jobs).checks.item[0]
     strategy:
       matrix: ${{ fromJSON(inputs.flake-jobs).checks }}
     steps:
@@ -212,6 +237,7 @@ jobs:
         with:
           item: ${{ toJSON(matrix.item) }}
           system: ${{ inputs.system }}
+          nix-install-url: ${{ inputs.nix-install-url }}
           cachix-name: ${{ inputs.cachix-name }}
           cachix-extra-pull-names: ${{ inputs.cachix-extra-pull-names }}
           cachix-auth-token: ${{ secrets.cachix-auth-token }}
