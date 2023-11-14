@@ -27,7 +27,7 @@ jobs:
       - id: parse
         name: Parse inputs for manually triggered workflow
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/github-script@v6.4.1
+        uses: actions/github-script@v7.0.0
         with:
           # This script needs to be able to return an empty string in some
           # cases, which is not possible if the JSON encoding is used.
@@ -89,7 +89,7 @@ jobs:
 
       - id: pendingPR
         name: Discover pending PR refs
-        uses: actions/github-script@v6.4.1
+        uses: actions/github-script@v7.0.0
         if: ${{ !steps.parse.outputs.result }}
         with:
           script: |
@@ -193,7 +193,7 @@ jobs:
 
       - id: matrix
         name: Prepare the matrix
-        uses: actions/github-script@v6.4.1
+        uses: actions/github-script@v7.0.0
         env:
           MATRIX_OVERRIDE: ${{ steps.parse.outputs.result }}
         with:
