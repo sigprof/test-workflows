@@ -1,0 +1,52 @@
+name: Matrix Results V2
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          DATA: |
+            {
+              "os": ["ubuntu-latest", "macos-latest"],
+              "node-version": ["14", "16"]
+            }
+        run: |
+          jq -rn 'env.DATA | fromjson | @json "matrix=\(.)"' > $GITHUB_OUTPUT
+
+  build:
+    needs:
+      - setup
+    strategy:
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: step1
+        name: Pretend we are doing something
+        run: |
+          echo '${{matrix.os}}:${{matrix.node-version}}' > output_${{strategy.job-index}}.txt
+      - name: Upload results as artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: build-output
+          path: output_${{strategy.job-index}}.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  summarize:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build results
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: build-output
+          path: build-output
+      - name: Report build results
+        run: |
+          grep . build-output/output_*.txt
