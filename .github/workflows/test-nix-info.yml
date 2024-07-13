@@ -22,4 +22,4 @@ jobs:
       - name: Get Nix configuration
         run: nix show-config
       - name: Get Nix info
-        run: nix-info -m
+        run: nix run nixpkgs#nix-info -- -m
