@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-12
+          - macos-13
+          - macos-14
+        nix_install_url:
+          - https://releases.nixos.org/nix/nix-2.18.1/install
+          - https://releases.nixos.org/nix/nix-2.22.1/install
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          install_url: ${{ matrix.nix_install_url }}
+      - name: Get Nix configuration
+        run: nix show-config
+      - name: Get Nix info
+        run: nix-info -m
