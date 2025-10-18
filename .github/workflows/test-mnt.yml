@@ -7,8 +7,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - run: |
-          sudo ls -lRa /mnt
-          sudo tar -cf - --exclude=swapfile -C /mnt . | dd bs=1M count=128 | zstd > mnt.tar.zst
+          ls -lRa /mnt
+          tar -cf - --exclude=swapfile -C /mnt . | dd bs=1M count=128 iflag=fullblock | zstd > mnt.tar.zst
       - uses: actions/upload-artifact@v4.6.2
         with:
           name: mnt.tar.zst
