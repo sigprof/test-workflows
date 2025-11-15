@@ -8,5 +8,7 @@ jobs:
         steps:
             - run: |
                 cd /mnt
-                list="$(sudo find \( -path ./lost+found -o -path ./swapfile \) -prune -o -print | LC_ALL=C sort)"
-                echo "$list"
+                extra="$(sudo find \( -path ./lost+found -o -path ./swapfile \) -prune -o -print | sed -ne '2,2p'"
+                if [ -n "$extra" ]; then
+                    echo "Extra files found"
+                fi
