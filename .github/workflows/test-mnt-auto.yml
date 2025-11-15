@@ -28,7 +28,7 @@ jobs:
                 fi
             - run: |
                 # Leave some data in /mnt to test for leaks
-                sudo install -o root -g root -m 1777 /mnt/data
+                sudo install -d -o root -g root -m 1777 /mnt/data
                 env > /mnt/data/env
             - if: always() && !cancelled()
               uses: actions/upload-artifact@v5.0.0
