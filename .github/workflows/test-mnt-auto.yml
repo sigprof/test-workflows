@@ -1,0 +1,12 @@
+name: test-mnt-auto
+on:
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-22.04
+        steps:
+            - run: |
+                cd /mnt
+                list="$(sudo find \( -path ./lost+found -o -path ./swapfile \) -prune -o -print | LC_ALL=C sort)"
+                echo "$list"
