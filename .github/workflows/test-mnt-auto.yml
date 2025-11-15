@@ -4,10 +4,16 @@ on:
 
 jobs:
     test:
-        runs-on: ubuntu-22.04
+        strategy:
+            matrix:
+                os:
+                    - ubuntu-22.04
+                instance: [0, 1]
+            fail-fast: false
+        runs-on: ${{ matrix.os }}
         steps:
             - run: |
-                extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt \) -prune -o -print | sed -ne '2,2p' )"
+                extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt.test \) -prune -o -print | sed -ne '2,2p' )"
                 if [ -n "$extra" ]; then
                     echo "*** Extra files found ***"
                     sudo ls -lRa /mnt ||:
@@ -17,7 +23,7 @@ jobs:
             - if: always() && !cancelled()
               uses: actions/upload-artifact@v5.0.0
               with:
-                name: mnt.tar.zst
+                name: mnt-${{ matrix.os }}-${{ matrix.instance }}.tar.zst
                 path: mnt.tar.zst
                 if-no-files-found: ignore
                 compression-level: 0
