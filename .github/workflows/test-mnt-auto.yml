@@ -8,12 +8,13 @@ jobs:
             matrix:
                 os:
                     - ubuntu-22.04
-                instance: [0, 1]
+                    - ubuntu-24.04
+                instance: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             fail-fast: false
         runs-on: ${{ matrix.os }}
         steps:
             - run: |
-                extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt.test \) -prune -o -print | sed -ne '2,2p' )"
+                extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt \) -prune -o -print | sed -ne '2,2p' )"
                 if [ -n "$extra" ]; then
                     echo "*** Extra files found ***"
                     echo "::group::ls -lRa /mnt"
