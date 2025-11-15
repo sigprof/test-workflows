@@ -16,8 +16,12 @@ jobs:
                 extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt.test \) -prune -o -print | sed -ne '2,2p' )"
                 if [ -n "$extra" ]; then
                     echo "*** Extra files found ***"
+                    echo "::group::ls -lRa /mnt"
                     sudo ls -lRa /mnt ||:
+                    echo "::endgroup::"
+                    echo "::group::archive a portion of extra files"
                     sudo tar -cf - --exclude=swapfile -C /mnt . | dd bs=1M count=128 iflag=fullblock | zstd > mnt.tar.zst ||:
+                    echo "::endgroup::"
                     exit 1
                 fi
             - if: always() && !cancelled()
