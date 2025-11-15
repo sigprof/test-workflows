@@ -14,6 +14,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - run: |
+                # Check for any unexpected files in /mnt
                 extra="$( cd /mnt && sudo find \( -path ./lost+found -o -path ./swapfile -o -path ./DATALOSS_WARNING_README.txt \) -prune -o -print | sed -ne '2,2p' )"
                 if [ -n "$extra" ]; then
                     echo "*** Extra files found ***"
@@ -25,6 +26,10 @@ jobs:
                     echo "::endgroup::"
                     exit 1
                 fi
+            - run: |
+                # Leave some data in /mnt to test for leaks
+                sudo install -o root -g root -m 1777 /mnt/data
+                env > /mnt/data/env
             - if: always() && !cancelled()
               uses: actions/upload-artifact@v5.0.0
               with:
